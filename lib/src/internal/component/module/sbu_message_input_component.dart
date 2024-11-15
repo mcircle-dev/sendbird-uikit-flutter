@@ -9,6 +9,7 @@ import 'package:sendbird_chat_sdk/sendbird_chat_sdk.dart';
 import 'package:sendbird_uikit/sendbird_uikit.dart';
 import 'package:sendbird_uikit/src/internal/component/base/sbu_base_component.dart';
 import 'package:sendbird_uikit/src/internal/component/basic/sbu_bottom_sheet_menu_component.dart';
+import 'package:sendbird_uikit/src/internal/component/basic/sbu_file_message_icon_component.dart';
 import 'package:sendbird_uikit/src/internal/component/basic/sbu_icon_button_component.dart';
 import 'package:sendbird_uikit/src/internal/component/basic/sbu_icon_component.dart';
 import 'package:sendbird_uikit/src/internal/component/basic/sbu_text_button_component.dart';
@@ -70,10 +71,14 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
     final editingMessage =
         collectionProvider.getEditingMessage(widget.messageCollectionNo);
 
+    final replyingToMessage =
+        collectionProvider.getReplyingToMessage(widget.messageCollectionNo);
+
     if (editingMessage != null) {
+      textFieldFocusNode.requestFocus();
+
       if (!isEditingMessage) {
         isEditingMessage = true;
-        textFieldFocusNode.requestFocus();
       }
 
       if (preEditingMessage == null ||
@@ -87,6 +92,10 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
         preEditingMessage = null;
         textEditingController.clear();
       }
+    }
+
+    if (replyingToMessage != null) {
+      textFieldFocusNode.requestFocus();
     }
 
     final channel = collection.channel;
@@ -107,6 +116,69 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (replyingToMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 6, top: 2, right: 4, bottom: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (replyingToMessage.messageType == MessageType.file)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: SBUFileMessageIconComponent(
+                            iconSize: 32,
+                            fileMessage: replyingToMessage as FileMessage,
+                          ),
+                        ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SBUTextComponent(
+                              text: strings.replyTo(widget.getNickname(
+                                  replyingToMessage.sender, strings)),
+                              textType: SBUTextType.caption1,
+                              textColorType: SBUTextColorType.text01,
+                            ),
+                            const SizedBox(height: 8),
+                            SBUTextComponent(
+                              text: (replyingToMessage is FileMessage)
+                                  ? replyingToMessage.name ?? ''
+                                  : replyingToMessage.message,
+                              textType: SBUTextType.caption2,
+                              textColorType: SBUTextColorType.text03,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      SBUIconButtonComponent(
+                        iconButtonSize: 24,
+                        icon: SBUIconComponent(
+                          iconSize: 16,
+                          iconData: SBUIcons.close,
+                          iconColor: isLightTheme
+                              ? SBUColors.lightThemeTextHighEmphasis
+                              : SBUColors.darkThemeTextHighEmphasis,
+                        ),
+                        onButtonClicked: () {
+                          showSendButton = false;
+                          textEditingController.clear();
+                          textFieldFocusNode.unfocus();
+                          SBUMessageCollectionProvider().resetMessageInputMode(
+                              widget.messageCollectionNo);
+
+                          runZonedGuarded(() {
+                            channel.endTyping();
+                          }, (error, stack) {
+                            // TODO: Check error
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -199,7 +271,16 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                                                           fileInfo.fileBytes!,
                                                           fileName:
                                                               fileInfo.fileName,
-                                                        ),
+                                                          replyToChannel:
+                                                              (replyingToMessage !=
+                                                                  null),
+                                                          parentMessageId:
+                                                              replyingToMessage
+                                                                  ?.messageId,
+                                                        )..thumbnailSizes = [
+                                                            widget
+                                                                .getThumbnailSize()
+                                                          ],
                                                       );
                                                     }
                                                   } else {
@@ -210,7 +291,16 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                                                           fileInfo.file!,
                                                           fileName:
                                                               fileInfo.fileName,
-                                                        ),
+                                                          replyToChannel:
+                                                              (replyingToMessage !=
+                                                                  null),
+                                                          parentMessageId:
+                                                              replyingToMessage
+                                                                  ?.messageId,
+                                                        )..thumbnailSizes = [
+                                                            widget
+                                                                .getThumbnailSize()
+                                                          ],
                                                       );
                                                     }
                                                   }
@@ -236,6 +326,10 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                                                   } else {
                                                     // TODO: Check error
                                                   }
+                                                } finally {
+                                                  SBUMessageCollectionProvider()
+                                                      .resetMessageInputMode(widget
+                                                          .messageCollectionNo);
                                                 }
                                               }
                                             },
@@ -266,7 +360,9 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                               ? strings.chatIsUnavailableInThisChannel
                               : (amIMuted
                                   ? strings.youAreMuted
-                                  : strings.enterMessage),
+                                  : (replyingToMessage != null
+                                      ? strings.replyToMessage
+                                      : strings.enterMessage)),
                           hintStyle: SBUTextStyles.getTextStyle(
                             theme: theme,
                             textType: SBUTextType.body3,
@@ -336,6 +432,8 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                             channel.sendUserMessage(
                               UserMessageCreateParams(
                                 message: textEditingController.text,
+                                replyToChannel: (replyingToMessage != null),
+                                parentMessageId: replyingToMessage?.messageId,
                               ),
                               handler: (message, e) {
                                 // TODO: Check error
@@ -343,6 +441,9 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                             );
 
                             textEditingController.clear();
+                            SBUMessageCollectionProvider()
+                                .resetMessageInputMode(
+                                    widget.messageCollectionNo);
 
                             runZonedGuarded(() {
                               channel.endTyping();
@@ -372,8 +473,8 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                           showSendButton = false;
                           textEditingController.clear();
                           textFieldFocusNode.unfocus();
-                          SBUMessageCollectionProvider()
-                              .resetEditingMessage(widget.messageCollectionNo);
+                          SBUMessageCollectionProvider().resetMessageInputMode(
+                              widget.messageCollectionNo);
 
                           runZonedGuarded(() {
                             channel.endTyping();
@@ -405,8 +506,9 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                             showSendButton = false;
                             textEditingController.clear();
                             textFieldFocusNode.unfocus();
-                            SBUMessageCollectionProvider().resetEditingMessage(
-                                widget.messageCollectionNo);
+                            SBUMessageCollectionProvider()
+                                .resetMessageInputMode(
+                                    widget.messageCollectionNo);
                           }, (error, stack) {
                             // TODO: Check error
                           });

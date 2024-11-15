@@ -38,7 +38,8 @@ Add following dependencies and fonts for `SendbirdIcons` in `pubspec.yaml`.
 
 ```yaml
 dependencies:
-  sendbird_uikit: ^1.0.0-beta.4
+  sendbird_uikit: ^1.0.0-beta.5
+  sendbird_chat_sdk: ^4.2.28
 
 flutter:
   fonts:

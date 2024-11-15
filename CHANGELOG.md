@@ -1,3 +1,10 @@
+## v1.0.0-beta.5 (Nov 15, 2024)
+
+### Features
+- Added `useReaction`, `useOGTag` and `replyType` parameters in `init()` in `SendbirdUIKit`
+- Added `onListItemClicked` parameter in `SBUGroupChannelScreen`
+- Added video thumbnail for Android and iOS
+
 ## v1.0.0-beta.4 (Jul 11, 2024)
 
 ### Improvements

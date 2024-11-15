@@ -23,4 +23,5 @@ export 'src/public/screen/group_channel/channel_list/sbu_group_channel_list_scre
 export 'src/public/screen/group_channel/channel_list/sbu_group_channel_settings_screen.dart';
 
 // Main
+export 'src/public/sbu_config.dart';
 export 'src/public/sendbird_uikit.dart';

@@ -21,6 +21,12 @@ abstract class SBUStatelessComponent extends StatelessWidget
   const SBUStatelessComponent({super.key});
 }
 
+enum SBUFileType {
+  image,
+  video,
+  other,
+}
+
 mixin SBUBaseComponent {
   // Name
   String getGroupChannelName(GroupChannel channel, SBUStrings strings) {
@@ -58,6 +64,21 @@ mixin SBUBaseComponent {
       }
     }
     return nickname;
+  }
+
+  String getNicknameOrYou(User? user, SBUStrings strings) {
+    String result = '';
+    if (user != null) {
+      if (user.userId.isNotEmpty &&
+          user.userId == SendbirdChat.currentUser?.userId) {
+        return strings.you;
+      }
+
+      if (user.nickname.isNotEmpty) {
+        result = user.nickname;
+      }
+    }
+    return result;
   }
 
   List<User> sortUsersByNickname(List<User> users) {
@@ -223,23 +244,28 @@ mixin SBUBaseComponent {
     return null;
   }
 
-  bool isImage(String? fileName) {
-    // Check
-    if (fileName != null && fileName.isNotEmpty) {
-      final splitFileName = fileName.split('.');
-      if (splitFileName.length >= 2) {
-        final ext = splitFileName.last.toLowerCase();
-        if (ext == 'png' || ext == 'jpg' || ext == 'jpeg' || ext == 'gif') {
-          return true;
-        }
+  SBUFileType getFileType(FileMessage message) {
+    String? mimeType = message.type;
+    if (mimeType != null) {
+      if (mimeType.startsWith('image')) {
+        return SBUFileType.image;
+      } else if (mimeType.startsWith('video')) {
+        return SBUFileType.video;
       }
     }
-    return false;
+    return SBUFileType.other;
   }
 
-  String? getImageCacheKey(BaseMessage? message) {
+  String? getChannelCacheKey(BaseChannel? channel) {
+    if (channel != null) {
+      return channel.channelUrl; // Check
+    }
+    return null;
+  }
+
+  String? getMessageCacheKey(BaseMessage? message) {
     if (message != null) {
-      return '${message.requestId}_${message.messageId}';
+      return '${message.requestId}_${message.messageId}'; // Check
     }
     return null;
   }
@@ -370,6 +396,18 @@ mixin SBUBaseComponent {
         ),
       );
     } catch (_) {}
+  }
+
+  Size getThumbnailSize() {
+    return const Size(600, 600); // Check
+  }
+
+  bool isReplyMessageToChannel(BaseMessage message) {
+    return (message.isReplyToChannel && message.parentMessage != null);
+  }
+
+  bool isReplyMessage(BaseMessage message) {
+    return (!message.isReplyToChannel && message.parentMessage != null);
   }
 
   // Test

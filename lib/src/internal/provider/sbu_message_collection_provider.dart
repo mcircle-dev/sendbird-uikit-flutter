@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:sendbird_chat_sdk/sendbird_chat_sdk.dart';
+import 'package:sendbird_uikit/src/internal/utils/sbu_reply_manager.dart';
 
 class SBUMessageCollectionProvider with ChangeNotifier {
   static int currentCollectionNo = 1;
@@ -11,6 +12,7 @@ class SBUMessageCollectionProvider with ChangeNotifier {
   final Map<int, MessageCollection> _collectionMap = {};
   final Map<int, bool?> _scrollToEndMap = {};
   final Map<int, BaseMessage?> _editingMessageMap = {};
+  final Map<int, BaseMessage?> _replyingToMessageMap = {};
   final Map<int, bool?> _deletedChannelMap = {};
 
   SBUMessageCollectionProvider._();
@@ -25,10 +27,19 @@ class SBUMessageCollectionProvider with ChangeNotifier {
     MessageListParams? params,
   }) {
     final collectionNo = currentCollectionNo++;
+
+    ReplyType? replyType;
+    if (params != null && params.replyType != null) {
+      replyType = params.replyType;
+    } else if (SBUReplyManager().isQuoteReplyAvailable(channel)) {
+      replyType = ReplyType.all;
+    }
+
     final collection = MessageCollection(
       channel: channel,
       params: (params ?? MessageListParams())
-        ..reverse = true, // Supported reverse value is only true.
+        ..reverse = true // Supported reverse value is only true.
+        ..replyType = replyType,
       handler: _MyMessageCollectionHandler(this, channel.channelUrl),
     );
     _collectionMap[collectionNo] = collection;
@@ -110,8 +121,23 @@ class SBUMessageCollectionProvider with ChangeNotifier {
     _scrollToEndMap.remove(collectionNo);
   }
 
+  // Delete message
+  bool canDeleteMessage(int collectionNo, BaseMessage message) {
+    final editingMessage = getEditingMessage(collectionNo);
+    final replyingToMessage = getReplyingToMessage(collectionNo);
+
+    if (editingMessage?.messageId == message.messageId ||
+        replyingToMessage?.messageId == message.messageId) {
+      return false;
+    }
+    return true;
+  }
+
   // _editingMessageMap
-  void setEditingMessage(int collectionNo, BaseMessage? message) {
+  void setEditingMessage(int collectionNo, BaseMessage message) {
+    _editingMessageMap.remove(collectionNo);
+    _replyingToMessageMap.remove(collectionNo);
+
     _editingMessageMap[collectionNo] = message;
     _refresh();
   }
@@ -120,8 +146,23 @@ class SBUMessageCollectionProvider with ChangeNotifier {
     return _editingMessageMap[collectionNo];
   }
 
-  void resetEditingMessage(int collectionNo) {
+  // _replyingToMessageMap
+  void setReplyingToMessage(int collectionNo, BaseMessage message) {
     _editingMessageMap.remove(collectionNo);
+    _replyingToMessageMap.remove(collectionNo);
+
+    _replyingToMessageMap[collectionNo] = message;
+    _refresh();
+  }
+
+  BaseMessage? getReplyingToMessage(int collectionNo) {
+    return _replyingToMessageMap[collectionNo];
+  }
+
+  // resetMessageInputMode
+  void resetMessageInputMode(int collectionNo) {
+    _editingMessageMap.remove(collectionNo);
+    _replyingToMessageMap.remove(collectionNo);
     _refresh();
   }
 

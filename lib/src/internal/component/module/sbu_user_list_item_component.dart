@@ -61,7 +61,7 @@ class SBUUserListItemComponentState extends State<SBUUserListItemComponent> {
     String name = widget.getNickname(user, strings);
     if (user.userId == SendbirdChat.currentUser?.userId) {
       isYou = true;
-      name += ' ${strings.you}';
+      name += ' (${strings.you})';
     }
 
     final isOperator = user is Member && user.role == Role.operator;
