@@ -4,23 +4,23 @@ import 'dart:ui';
 
 /// SBUColors
 class SBUColors {
-  static Color primaryExtraDark = const Color(0xFFFFFFFF);
-  static Color primaryDark = const Color(0xFF6211C8);
-  static Color primaryMain = const Color(0xFF742DDD);
-  static Color primaryLight = const Color(0xFFC2A9FA);
-  static Color primaryExtraLight = const Color(0xFFDBD1FF);
+  static Color primaryExtraDark = const Color(0xFF491389); // Primary-500
+  static Color primaryDark = const Color(0xFF6211C8); // Primary-400
+  static Color primaryMain = const Color(0xFF742DDD); // Primary-300
+  static Color primaryLight = const Color(0xFFC2A9FA); // Primary-200
+  static Color primaryExtraLight = const Color(0xFFDBD1FF); // Primary-100
 
-  static Color secondaryExtraDark = const Color(0xFF066858);
-  static Color secondaryDark = const Color(0xFF027D69);
-  static Color secondaryMain = const Color(0xFF259C72);
-  static Color secondaryLight = const Color(0xFF69C085);
-  static Color secondaryExtraLight = const Color(0xFFA8E2AB);
+  static Color secondaryExtraDark = const Color(0xFF066858); // Secondary-500
+  static Color secondaryDark = const Color(0xFF027D69); // Secondary-400
+  static Color secondaryMain = const Color(0xFF259C72); // Secondary-300
+  static Color secondaryLight = const Color(0xFF69C085); // Secondary-200
+  static Color secondaryExtraLight = const Color(0xFFA8E2AB); // Secondary-100
 
-  static Color errorExtraDark = const Color(0xFF9D091E);
-  static Color errorDark = const Color(0xFFBF0711);
-  static Color errorMain = const Color(0xFFDE360B);
-  static Color errorLight = const Color(0xFFF66161);
-  static Color errorExtraLight = const Color(0xFFFDAAAA);
+  static Color errorExtraDark = const Color(0xFF9D091E); // Error-500
+  static Color errorDark = const Color(0xFFBF0711); // Error-400
+  static Color errorMain = const Color(0xFFDE360B); // Error-300
+  static Color errorLight = const Color(0xFFF66161); // Error-200
+  static Color errorExtraLight = const Color(0xFFFDAAAA); // Error-100
 
   static Color background700 = const Color(0xFF000000);
   static Color background600 = const Color(0xFF161616);
@@ -31,26 +31,26 @@ class SBUColors {
   static Color background100 = const Color(0xFFEEEEEE);
   static Color background50 = const Color(0xFFFFFFFF);
 
-  static Color overlayDark = const Color(0x8C000000);
-  static Color overlayLight = const Color(0x52161616);
+  static Color overlayDark = const Color(0x8C000000); // Overlay-01
+  static Color overlayLight = const Color(0x52161616); // Overlay-02
 
-  static Color informationExtraDark = const Color(0xFF241389);
-  static Color informationDark = const Color(0xFF362CA9);
-  static Color informationMain = const Color(0xFF4A48CD);
-  static Color informationLight = const Color(0xFFA9BBFA);
-  static Color informationExtraLight = const Color(0xFFD1DBFF);
+  static Color informationExtraDark = const Color(0xFF241389); // Info-500
+  static Color informationDark = const Color(0xFF362CA9); // Info-400
+  static Color informationMain = const Color(0xFF4A48CD); // Info-300
+  static Color informationLight = const Color(0xFFA9BBFA); // Info-200
+  static Color informationExtraLight = const Color(0xFFD1DBFF); // Info-100
 
   static Color highlight = const Color(0xFFFFF2B6);
 
-  static Color lightThemeTextHighEmphasis = const Color(0xE0000000);
-  static Color lightThemeTextMidEmphasis = const Color(0x80000000);
-  static Color lightThemeTextLowEmphasis = const Color(0x61000000);
-  static Color lightThemeTextDisabled = const Color(0x1F000000);
+  static Color lightThemeTextHighEmphasis = const Color(0xE0000000); // Light-01
+  static Color lightThemeTextMidEmphasis = const Color(0x80000000); // Light-02
+  static Color lightThemeTextLowEmphasis = const Color(0x61000000); // Light-03
+  static Color lightThemeTextDisabled = const Color(0x1F000000); // Light-04
 
-  static Color darkThemeTextHighEmphasis = const Color(0xE0FFFFFF);
-  static Color darkThemeTextMidEmphasis = const Color(0x80FFFFFF);
-  static Color darkThemeTextLowEmphasis = const Color(0x61FFFFFF);
-  static Color darkThemeTextDisabled = const Color(0x1FFFFFFF);
+  static Color darkThemeTextHighEmphasis = const Color(0xE0FFFFFF); // Dark-01
+  static Color darkThemeTextMidEmphasis = const Color(0x80FFFFFF); // Dark-02
+  static Color darkThemeTextLowEmphasis = const Color(0x61FFFFFF); // Dark-03
+  static Color darkThemeTextDisabled = const Color(0x1FFFFFFF); // Dark-04
 
   /// Sets colors.
   static void setColors({

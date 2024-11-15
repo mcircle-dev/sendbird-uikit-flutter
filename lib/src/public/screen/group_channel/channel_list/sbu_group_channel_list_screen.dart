@@ -15,6 +15,7 @@ import 'package:sendbird_uikit/src/internal/component/module/sbu_group_channel_l
 import 'package:sendbird_uikit/src/internal/component/module/sbu_header_component.dart';
 import 'package:sendbird_uikit/src/internal/provider/sbu_group_channel_collection_provider.dart';
 import 'package:sendbird_uikit/src/internal/resource/sbu_text_styles.dart';
+import 'package:sendbird_uikit/src/internal/utils/sbu_reaction_manager.dart';
 
 /// SBUGroupChannelListScreen
 class SBUGroupChannelListScreen extends SBUStatefulComponent {
@@ -180,6 +181,8 @@ class SBUGroupChannelListScreenState extends State<SBUGroupChannelListScreen>
   Widget build(BuildContext context) {
     super.build(context);
 
+    SBUReactionManager().cacheEmojiList(context); // Check
+
     final themeProvider = context.watch<SBUThemeProvider>();
     final theme = themeProvider.theme;
     final isLightTheme = themeProvider.isLight();
@@ -271,6 +274,9 @@ class SBUGroupChannelListScreenState extends State<SBUGroupChannelListScreen>
                           height: 76,
                           channel: collection.channelList[index],
                           onListItemClicked: widget.onListItemClicked,
+                          key: Key(widget.getChannelCacheKey(
+                                  collection.channelList[index]) ??
+                              ''),
                         );
                 },
               ),

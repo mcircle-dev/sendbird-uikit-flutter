@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:sendbird_chat_sdk/sendbird_chat_sdk.dart';
 import 'package:sendbird_uikit/sendbird_uikit.dart';
 import 'package:sendbird_uikit/src/internal/component/base/sbu_base_component.dart';
@@ -31,6 +32,7 @@ class SBUGroupChannelScreen extends SBUStatefulComponent {
   final void Function(GroupChannel)? onChannelDeleted;
   final void Function(int messageCollectionNo)? onInfoButtonClicked;
   final void Function(GroupChannel)? on1On1ChannelCreated;
+  final void Function(GroupChannel, BaseMessage)? onListItemClicked;
   final double scrollExtentToTriggerPreloading;
   final double cacheExtent;
 
@@ -92,6 +94,7 @@ class SBUGroupChannelScreen extends SBUStatefulComponent {
     this.onChannelDeleted,
     this.onInfoButtonClicked,
     this.on1On1ChannelCreated,
+    this.onListItemClicked,
     this.scrollExtentToTriggerPreloading =
         defaultScrollExtentToTriggerPreloading,
     this.cacheExtent = defaultCacheExtent,
@@ -110,12 +113,20 @@ class SBUGroupChannelScreen extends SBUStatefulComponent {
 }
 
 class SBUGroupChannelScreenState extends State<SBUGroupChannelScreen>
-    with AutomaticKeepAliveClientMixin {
-  final scrollController = ScrollController();
+    with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
+  final scrollController = AutoScrollController();
+
+  late final AnimationController _animationController;
+  final int _animationDuration = 150;
+  final int _animationShakingCount = 3;
+  final int _animationGap = 4;
 
   int? collectionNo;
   bool isLoading = true;
   bool isError = false;
+
+  int? clickedParentMessageIndex;
+  bool isClickedParentMessageAnimating = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -125,6 +136,11 @@ class SBUGroupChannelScreenState extends State<SBUGroupChannelScreen>
     super.initState();
     FToast().init(context); // Check
     _init();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: _animationDuration),
+    );
   }
 
   void _init() async {
@@ -216,7 +232,9 @@ class SBUGroupChannelScreenState extends State<SBUGroupChannelScreen>
     if (collectionNo != null) {
       SBUMessageCollectionProvider().remove(collectionNo!);
     }
+
     scrollController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -340,6 +358,71 @@ class SBUGroupChannelScreenState extends State<SBUGroupChannelScreen>
                 itemCount: collection.messageList.length,
                 cacheExtent: widget.cacheExtent,
                 itemBuilder: (context, index) {
+                  Widget listItem = AutoScrollTag(
+                    key: ValueKey(index),
+                    controller: scrollController,
+                    index: index,
+                    child: SBUMessageListItemComponent(
+                      messageCollectionNo: collectionNo!,
+                      messageList: collection.messageList,
+                      messageIndex: index,
+                      on1On1ChannelCreated: widget.on1On1ChannelCreated,
+                      onListItemClicked: widget.onListItemClicked,
+                      onParentMessageClicked: (parentMessage) async {
+                        if (isClickedParentMessageAnimating) {
+                          return;
+                        }
+
+                        int? foundIndex;
+                        for (int index = 0;
+                            index < collection.messageList.length;
+                            index++) {
+                          if (collection.messageList[index].messageId ==
+                              parentMessage.messageId) {
+                            foundIndex = index;
+                            break;
+                          }
+                        }
+
+                        if (foundIndex != null) {
+                          await scrollController.scrollToIndex(foundIndex);
+
+                          if (mounted) {
+                            setState(() {
+                              clickedParentMessageIndex = foundIndex;
+                              isClickedParentMessageAnimating = true;
+                            });
+                          }
+
+                          for (int i = _animationShakingCount; i > 0; i--) {
+                            await _animationController.forward();
+                            await _animationController.reverse();
+                          }
+
+                          clickedParentMessageIndex = null;
+                          isClickedParentMessageAnimating = false;
+                        }
+                      },
+                      key: Key(widget.getMessageCacheKey(
+                              collection.messageList[index]) ??
+                          ''),
+                    ),
+                  );
+
+                  Widget? animationListItem;
+                  if (index == clickedParentMessageIndex) {
+                    animationListItem = AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: Offset(
+                              0, _animationGap * (_animationController.value)),
+                          child: listItem,
+                        );
+                      },
+                    );
+                  }
+
                   return widget.customListItem != null
                       ? widget.customListItem!(
                           context,
@@ -349,12 +432,7 @@ class SBUGroupChannelScreenState extends State<SBUGroupChannelScreen>
                           index,
                           collection.messageList[index],
                         )
-                      : SBUMessageListItemComponent(
-                          messageCollectionNo: collectionNo!,
-                          messageList: collection.messageList,
-                          messageIndex: index,
-                          on1On1ChannelCreated: widget.on1On1ChannelCreated,
-                        );
+                      : (animationListItem ?? listItem);
                 },
               ),
             ),

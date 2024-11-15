@@ -10,12 +10,15 @@ import 'package:sendbird_uikit/sendbird_uikit.dart';
 import 'package:sendbird_uikit/src/internal/provider/sbu_group_channel_collection_provider.dart';
 import 'package:sendbird_uikit/src/internal/provider/sbu_message_collection_provider.dart';
 import 'package:sendbird_uikit/src/internal/resource/sbu_text_styles.dart';
+import 'package:sendbird_uikit/src/internal/utils/sbu_ogtag_manager.dart';
 import 'package:sendbird_uikit/src/internal/utils/sbu_preferences.dart';
+import 'package:sendbird_uikit/src/internal/utils/sbu_reaction_manager.dart';
+import 'package:sendbird_uikit/src/internal/utils/sbu_reply_manager.dart';
 
 /// SendbirdUIKit
 class SendbirdUIKit {
   /// UIKit version
-  static const version = '1.0.0-beta.4';
+  static const version = '1.0.0-beta.5';
 
   SendbirdUIKit._();
 
@@ -94,6 +97,9 @@ class SendbirdUIKit {
       String? fileName,
       void Function() downloadCompleted,
     )? downloadFile,
+    bool useReaction = true, // This feature is not supported on the web.
+    bool useOGTag = true,
+    SBUReplyType replyType = SBUReplyType.quoteReply,
   }) async {
     SendbirdChat.addExtension('sb_uikit', version);
 
@@ -113,6 +119,10 @@ class SendbirdUIKit {
     _uikit._chooseDocument = chooseDocument;
     _uikit._downloadFile = downloadFile;
 
+    SBUReactionManager().useReaction = useReaction;
+    SBUOGTagManager().useOGTag = useOGTag;
+    SBUReplyManager().replyType = replyType;
+
     _uikit._isInitialized = true;
     return true;
   }
@@ -127,6 +137,8 @@ class SendbirdUIKit {
     String userId, {
     String? nickname,
     String? accessToken,
+    String? apiHost,
+    String? wsHost,
   }) async {
     bool result = true;
     try {
@@ -134,7 +146,11 @@ class SendbirdUIKit {
         userId,
         nickname: nickname,
         accessToken: accessToken,
+        apiHost: apiHost,
+        wsHost: wsHost,
       );
+
+      SBUReactionManager().initEmojiList(); // No await
     } catch (_) {
       result = false;
     }

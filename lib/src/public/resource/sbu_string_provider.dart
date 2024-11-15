@@ -53,6 +53,9 @@ class SBUStrings {
 
   // GroupChannel
   String enterMessage;
+  String replyToMessage;
+  String Function(String user) replyTo;
+  String Function(String from, String to) repliedTo;
   String takePhoto;
   String takeVideo;
   String gallery;
@@ -60,6 +63,7 @@ class SBUStrings {
   String copy;
   String edit;
   String delete;
+  String reply;
   String retry;
   String remove;
   String channelIsFrozen;
@@ -139,6 +143,9 @@ class SBUStrings {
 
     // GroupChannel
     required this.enterMessage,
+    required this.replyToMessage,
+    required this.replyTo,
+    required this.repliedTo,
     required this.takePhoto,
     required this.takeVideo,
     required this.gallery,
@@ -146,6 +153,7 @@ class SBUStrings {
     required this.copy,
     required this.edit,
     required this.delete,
+    required this.reply,
     required this.retry,
     required this.remove,
     required this.channelIsFrozen,
@@ -226,6 +234,9 @@ class SBUStrings {
 
     // GroupChannel
     enterMessage: 'Enter message',
+    replyToMessage: 'Reply to message',
+    replyTo: (user) => 'Reply to $user',
+    repliedTo: (userA, userB) => '$userA replied to $userB',
     takePhoto: 'Take photo',
     takeVideo: 'Take video',
     gallery: 'Gallery',
@@ -233,6 +244,7 @@ class SBUStrings {
     copy: 'Copy',
     edit: 'Edit',
     delete: 'Delete',
+    reply: 'Reply',
     retry: 'Retry',
     remove: 'Remove',
     channelIsFrozen: 'Channel is frozen',
@@ -270,7 +282,7 @@ class SBUStrings {
     noBannedUsers: 'No banned users',
 
     // GroupChannel members
-    you: '(You)',
+    you: 'You',
     operator: 'Operator',
     registerAsOperator: 'Register as operator',
     unregisterOperator: 'Unregister operator',

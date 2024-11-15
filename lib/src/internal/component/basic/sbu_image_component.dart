@@ -35,6 +35,13 @@ class SBUImageComponent extends SBUStatelessComponent {
         ),
       ),
       errorWidget: (context, url, error) => errorWidget ?? Container(),
+      // Check
+      fadeOutDuration: Duration.zero,
+      // Check
+      fadeInDuration: Duration.zero,
+      errorListener: (e) {
+        // Error
+      },
     );
   }
 }
