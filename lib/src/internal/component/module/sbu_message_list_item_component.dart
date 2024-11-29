@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -559,6 +560,7 @@ class SBUMessageListItemComponentState
                         widget.unfocus();
                         await showModalBottomSheet(
                           context: context,
+                          isScrollControlled: true,
                           shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(8),
@@ -590,7 +592,7 @@ class SBUMessageListItemComponentState
             children: [
               if (isSameMinuteAtPreviousMessage == false)
                 if (message.isReplyToChannel == false &&
-                    message.parentMessage == null)
+                    message.parentMessageId == null)
                   Padding(
                     padding: const EdgeInsets.only(left: 12, bottom: 4),
                     child: SBUTextComponent(
@@ -611,6 +613,7 @@ class SBUMessageListItemComponentState
                     widget.unfocus();
                     await showModalBottomSheet(
                       context: context,
+                      isScrollControlled: true,
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(8),
@@ -798,6 +801,7 @@ class SBUMessageListItemComponentState
                   widget.unfocus();
                   await showModalBottomSheet(
                     context: context,
+                    isScrollControlled: true,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(8),
@@ -882,6 +886,7 @@ class SBUMessageListItemComponentState
                   widget.unfocus();
                   await showModalBottomSheet(
                     context: context,
+                    isScrollControlled: true,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(8),
@@ -1012,6 +1017,7 @@ class SBUMessageListItemComponentState
                         widget.unfocus();
                         await showModalBottomSheet(
                           context: context,
+                          isScrollControlled: true,
                           shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(8),
@@ -1043,7 +1049,7 @@ class SBUMessageListItemComponentState
             children: [
               if (isSameMinuteAtPreviousMessage == false)
                 if (message.isReplyToChannel == false &&
-                    message.parentMessage == null)
+                    message.parentMessageId == null)
                   Padding(
                     padding: const EdgeInsets.only(left: 12, bottom: 4),
                     child: SBUTextComponent(
@@ -1068,6 +1074,7 @@ class SBUMessageListItemComponentState
                     widget.unfocus();
                     await showModalBottomSheet(
                       context: context,
+                      isScrollControlled: true,
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(8),
@@ -1266,6 +1273,7 @@ class SBUMessageListItemComponentState
                   widget.unfocus();
                   await showModalBottomSheet(
                     context: context,
+                    isScrollControlled: true,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(8),
@@ -1360,6 +1368,7 @@ class SBUMessageListItemComponentState
                   widget.unfocus();
                   await showModalBottomSheet(
                     context: context,
+                    isScrollControlled: true,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(8),
@@ -1477,10 +1486,6 @@ class SBUMessageListItemComponentState
       ),
       child: child,
     );
-
-    if (widget.isReplyMessage(message)) {
-      result = Container(); // Check
-    }
 
     return result;
   }
@@ -1633,9 +1638,18 @@ class SBUMessageListItemComponentState
     Widget result = child;
 
     if (widget.isReplyMessageToChannel(message)) {
+      BaseMessage parentMessage = message.parentMessage!;
+      if (message.parentMessageId != null) {
+        final updatableMessage = collection.messageList
+            .firstWhereOrNull((m) => m.messageId == message.parentMessageId);
+        if (updatableMessage != null) {
+          parentMessage = updatableMessage;
+        }
+      }
+
       Widget parentMessageItemWidget = _parentMessageItemWidget(
         collection: collection,
-        message: message.parentMessage!,
+        message: parentMessage,
         isSameMinuteAtPreviousMessage: isSameMinuteAtPreviousMessage,
         isSameMinuteAtNextMessage: isSameMinuteAtNextMessage,
         timeString: timeString,
@@ -1683,8 +1697,6 @@ class SBUMessageListItemComponentState
           ),
         ],
       );
-    } else if (widget.isReplyMessage(message)) {
-      result = Container(); // Check
     }
 
     return result;

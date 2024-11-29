@@ -122,6 +122,7 @@ class SBUReactionComponentState extends State<SBUReactionComponent> {
                                   if (reaction.key == addReactionKey) {
                                     await showModalBottomSheet(
                                       context: context,
+                                      isScrollControlled: true,
                                       shape: const RoundedRectangleBorder(
                                         borderRadius: BorderRadius.only(
                                           topLeft: Radius.circular(8),
@@ -144,6 +145,7 @@ class SBUReactionComponentState extends State<SBUReactionComponent> {
                                   if (reaction.key != addReactionKey) {
                                     await showModalBottomSheet(
                                       context: context,
+                                      isScrollControlled: true,
                                       shape: const RoundedRectangleBorder(
                                         borderRadius: BorderRadius.only(
                                           topLeft: Radius.circular(8),
@@ -157,7 +159,6 @@ class SBUReactionComponentState extends State<SBUReactionComponent> {
                                           selectedReaction: reaction,
                                         );
                                       },
-                                      isScrollControlled: true, // Check
                                     );
                                   }
                                 },

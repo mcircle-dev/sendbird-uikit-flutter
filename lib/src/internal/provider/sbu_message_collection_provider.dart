@@ -32,7 +32,7 @@ class SBUMessageCollectionProvider with ChangeNotifier {
     if (params != null && params.replyType != null) {
       replyType = params.replyType;
     } else if (SBUReplyManager().isQuoteReplyAvailable(channel)) {
-      replyType = ReplyType.all;
+      replyType = ReplyType.onlyReplyToChannel;
     }
 
     final collection = MessageCollection(
