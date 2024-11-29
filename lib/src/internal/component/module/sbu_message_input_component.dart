@@ -211,6 +211,7 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                                       widget.unfocus();
                                       await showModalBottomSheet(
                                         context: context,
+                                        isScrollControlled: true,
                                         shape: const RoundedRectangleBorder(
                                           borderRadius: BorderRadius.only(
                                             topLeft: Radius.circular(8),
@@ -224,7 +225,7 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                                                 SBUIcons.camera,
                                               if (widget.canTakeVideo())
                                                 SBUIcons.camera,
-                                              if (widget.canChoosePhoto())
+                                              if (widget.canChooseMedia())
                                                 SBUIcons.photo,
                                               if (widget.canChooseDocument())
                                                 SBUIcons.document,
@@ -234,7 +235,7 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                                                 strings.takePhoto,
                                               if (widget.canTakeVideo())
                                                 strings.takeVideo,
-                                              if (widget.canChoosePhoto())
+                                              if (widget.canChooseMedia())
                                                 strings.gallery,
                                               if (widget.canChooseDocument())
                                                 strings.document,
@@ -253,7 +254,7 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                                               } else if (buttonName ==
                                                   strings.gallery) {
                                                 fileInfo = await SendbirdUIKit()
-                                                    .choosePhoto!();
+                                                    .chooseMedia!();
                                               } else if (buttonName ==
                                                   strings.document) {
                                                 fileInfo = await SendbirdUIKit()

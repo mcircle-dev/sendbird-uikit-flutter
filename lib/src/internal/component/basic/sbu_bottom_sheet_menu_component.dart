@@ -51,56 +51,59 @@ class SBUBottomSheetMenuComponentState
     final errorColorIndex = widget.errorColorIndex;
     final disabledNames = widget.disabledNames;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isLightTheme ? SBUColors.background50 : SBUColors.background500,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(8),
-          topRight: Radius.circular(8),
+    return SafeArea(
+      child: Container(
+        decoration: BoxDecoration(
+          color:
+              isLightTheme ? SBUColors.background50 : SBUColors.background500,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(8),
+            topRight: Radius.circular(8),
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _getReactionWidget(channel, message, isLightTheme),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: buttonNames.mapIndexed((index, iconName) {
-              final isError = (errorColorIndex == index);
-              final isDisabled =
-                  disabledNames?.any((name) => name == buttonNames[index]) ??
-                      false;
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _getReactionWidget(channel, message, isLightTheme),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: buttonNames.mapIndexed((index, iconName) {
+                final isError = (errorColorIndex == index);
+                final isDisabled =
+                    disabledNames?.any((name) => name == buttonNames[index]) ??
+                        false;
 
-              return Material(
-                color: Colors.transparent,
-                child: isDisabled
-                    ? _menuItem(
-                        index: index,
-                        iconNames: iconNames,
-                        buttonNames: buttonNames,
-                        isError: isError,
-                        isDisabled: isDisabled,
-                        isLightTheme: isLightTheme,
-                      )
-                    : InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                          onButtonClicked(buttonNames[index]);
-                        },
-                        child: _menuItem(
+                return Material(
+                  color: Colors.transparent,
+                  child: isDisabled
+                      ? _menuItem(
                           index: index,
                           iconNames: iconNames,
                           buttonNames: buttonNames,
                           isError: isError,
                           isDisabled: isDisabled,
                           isLightTheme: isLightTheme,
+                        )
+                      : InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            onButtonClicked(buttonNames[index]);
+                          },
+                          child: _menuItem(
+                            index: index,
+                            iconNames: iconNames,
+                            buttonNames: buttonNames,
+                            isError: isError,
+                            isDisabled: isDisabled,
+                            isLightTheme: isLightTheme,
+                          ),
                         ),
-                      ),
-              );
-            }).toList(),
-          ),
-        ],
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -227,6 +230,7 @@ class SBUBottomSheetMenuComponentState
                     Navigator.pop(context);
                     await showModalBottomSheet(
                       context: context,
+                      isScrollControlled: true,
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(8),

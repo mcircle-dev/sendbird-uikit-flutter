@@ -18,7 +18,7 @@ import 'package:sendbird_uikit/src/internal/utils/sbu_reply_manager.dart';
 /// SendbirdUIKit
 class SendbirdUIKit {
   /// UIKit version
-  static const version = '1.0.0-beta.5';
+  static const version = '1.0.0-beta.6';
 
   SendbirdUIKit._();
 
@@ -39,6 +39,10 @@ class SendbirdUIKit {
   Future<FileInfo?> Function()? _choosePhoto;
 
   Future<FileInfo?> Function()? get choosePhoto => _choosePhoto;
+
+  Future<FileInfo?> Function()? _chooseMedia;
+
+  Future<FileInfo?> Function()? get chooseMedia => _chooseMedia;
 
   Future<FileInfo?> Function()? _chooseDocument;
 
@@ -91,6 +95,7 @@ class SendbirdUIKit {
     Future<FileInfo?> Function()? takePhoto,
     Future<FileInfo?> Function()? takeVideo,
     Future<FileInfo?> Function()? choosePhoto,
+    Future<FileInfo?> Function()? chooseMedia,
     Future<FileInfo?> Function()? chooseDocument,
     Future<void> Function(
       String fileUrl,
@@ -116,6 +121,7 @@ class SendbirdUIKit {
     _uikit._takePhoto = takePhoto;
     _uikit._takeVideo = takeVideo;
     _uikit._choosePhoto = choosePhoto;
+    _uikit._chooseMedia = chooseMedia;
     _uikit._chooseDocument = chooseDocument;
     _uikit._downloadFile = downloadFile;
 

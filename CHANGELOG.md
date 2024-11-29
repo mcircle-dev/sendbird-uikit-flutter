@@ -1,3 +1,12 @@
+## v1.0.0-beta.6 (Nov 29, 2024)
+
+### Features
+- Added a `chooseMedia` parameter in `SendbirdUIKit.init()`
+
+### Improvements
+- Fixed to support tree-shake-icons option when building applications
+- Fixed some UI bugs
+
 ## v1.0.0-beta.5 (Nov 15, 2024)
 
 ### Features

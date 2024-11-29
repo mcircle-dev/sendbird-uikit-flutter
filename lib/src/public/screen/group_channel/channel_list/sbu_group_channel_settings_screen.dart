@@ -84,6 +84,7 @@ class SBUGroupChannelSettingsScreenState
         onButtonClicked: () async {
           await showModalBottomSheet(
             context: context,
+            isScrollControlled: true,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(8),

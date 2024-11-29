@@ -345,6 +345,10 @@ mixin SBUBaseComponent {
     return SendbirdUIKit().choosePhoto != null;
   }
 
+  bool canChooseMedia() {
+    return SendbirdUIKit().chooseMedia != null;
+  }
+
   bool canChooseDocument() {
     return SendbirdUIKit().chooseDocument != null;
   }
@@ -404,10 +408,6 @@ mixin SBUBaseComponent {
 
   bool isReplyMessageToChannel(BaseMessage message) {
     return (message.isReplyToChannel && message.parentMessage != null);
-  }
-
-  bool isReplyMessage(BaseMessage message) {
-    return (!message.isReplyToChannel && message.parentMessage != null);
   }
 
   // Test
