@@ -1,3 +1,6 @@
+## v1.0.1 (Jan 2, 2025)
+- Updated `README.md`
+
 ## v1.0.0 (Dec 6, 2024)
 - GA
 
