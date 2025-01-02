@@ -38,7 +38,7 @@ Add following dependencies and fonts for `SendbirdIcons` in `pubspec.yaml`.
 
 ```yaml
 dependencies:
-  sendbird_uikit: ^1.0.0
+  sendbird_uikit: ^1.0.1
   sendbird_chat_sdk: ^4.2.30
 
 flutter:
@@ -64,12 +64,7 @@ void main() async {
   await SendbirdUIKit.init(appId: 'YOUR_APP_ID');
   await SendbirdUIKit.connect('YOUR_USER_ID');
 
-  runApp(SendbirdUIKit.provider(
-    child: const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MyApp(), // This class will be implemented below.
-    ),
-  ));
+  runApp(const MyApp());
 }
 ```
 
@@ -80,6 +75,27 @@ You can easily add `SBUGroupChannelListScreen`, `SBUGroupChannelCreateScreen` an
 ```dart
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        return SendbirdUIKit.provider(
+          child: Navigator(
+            onGenerateRoute: (settings) => MaterialPageRoute(
+              builder: (context) => child!,
+            ),
+          ),
+        );
+      },
+      home: const HomeScreen(), // Separate screen widget
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -98,29 +114,35 @@ class MyApp extends StatelessWidget {
   }
 
   void moveToGroupChannelCreateScreen(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => Scaffold(
-        body: SafeArea(
-          child: SBUGroupChannelCreateScreen(
-            onChannelCreated: (channel) {
-              moveToGroupChannelScreen(context, channel.channelUrl);
-            },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          body: SafeArea(
+            child: SBUGroupChannelCreateScreen(
+              onChannelCreated: (channel) {
+                moveToGroupChannelScreen(context, channel.channelUrl);
+              },
+            ),
           ),
         ),
       ),
-    ));
+    );
   }
 
   void moveToGroupChannelScreen(BuildContext context, String channelUrl) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => Scaffold(
-        body: SafeArea(
-          child: SBUGroupChannelScreen(
-            channelUrl: channelUrl,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          body: SafeArea(
+            child: SBUGroupChannelScreen(
+              channelUrl: channelUrl,
+            ),
           ),
         ),
       ),
-    ));
+    );
   }
 }
 ```
