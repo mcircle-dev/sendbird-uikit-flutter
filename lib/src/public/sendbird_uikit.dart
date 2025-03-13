@@ -18,7 +18,7 @@ import 'package:sendbird_uikit/src/internal/utils/sbu_reply_manager.dart';
 /// SendbirdUIKit
 class SendbirdUIKit {
   /// UIKit version
-  static const version = '1.0.1';
+  static const version = '1.0.2';
 
   SendbirdUIKit._();
 
@@ -63,27 +63,30 @@ class SendbirdUIKit {
   /// Applies the providers for [SendbirdUIKit].
   static Widget provider({
     required Widget child,
+    bool enableTapToUnfocus = true,
   }) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => SBUThemeProvider(),
+        ChangeNotifierProvider.value(
+          value: SBUThemeProvider(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => SBUStringProvider(),
+        ChangeNotifierProvider.value(
+          value: SBUStringProvider(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => SBUGroupChannelCollectionProvider(),
+        ChangeNotifierProvider.value(
+          value: SBUGroupChannelCollectionProvider(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => SBUMessageCollectionProvider(),
+        ChangeNotifierProvider.value(
+          value: SBUMessageCollectionProvider(),
         ),
       ],
       builder: FToastBuilder(),
-      child: GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: child,
-      ),
+      child: enableTapToUnfocus
+          ? GestureDetector(
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: child,
+            )
+          : child,
     );
   }
 

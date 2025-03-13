@@ -1,3 +1,8 @@
+## v1.0.2 (Mar 13, 2025)
+
+### Improvements
+- Fixed `provider()` in `SendbirdUIKit` to be available everywhere
+
 ## v1.0.1 (Jan 2, 2025)
 - Updated `README.md`
 
