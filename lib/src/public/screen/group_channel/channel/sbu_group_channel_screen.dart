@@ -215,7 +215,11 @@ class SBUGroupChannelScreenState extends State<SBUGroupChannelScreen>
 
   Future<void> _loadPrevious(MessageCollection collection) async {
     if (!collection.isLoading && collection.hasPrevious) {
-      await collection.loadPrevious();
+      try {
+        await collection.loadPrevious();
+      } catch (_) {
+        return;
+      }
 
       if (mounted) {
         if (collection.messageList.isNotEmpty) {
