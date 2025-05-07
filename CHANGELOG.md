@@ -1,3 +1,8 @@
+## v1.0.3 (May 7, 2025)
+
+### Improvements
+- Added handling of network error related exceptions in `MessageCollection`
+
 ## v1.0.2 (Mar 13, 2025)
 
 ### Improvements
