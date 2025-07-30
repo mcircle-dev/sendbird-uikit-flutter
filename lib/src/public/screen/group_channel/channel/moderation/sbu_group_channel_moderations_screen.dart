@@ -70,9 +70,11 @@ class SBUGroupChannelModerationsScreenState
             await channel?.unfreeze();
           }
 
-          setState(() {
-            isFrozenChannel = value;
-          });
+          if (mounted) {
+            setState(() {
+              isFrozenChannel = value;
+            });
+          }
         }, (error, stack) {
           // TODO: Check error
         });

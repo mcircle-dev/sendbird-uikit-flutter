@@ -160,10 +160,12 @@ class SBUGroupChannelInformationScreenState
               ? GroupChannelPushTriggerOption.all
               : GroupChannelPushTriggerOption.off);
 
-          setState(() {
-            isNotificationsOn = (channel?.myPushTriggerOption !=
-                GroupChannelPushTriggerOption.off);
-          });
+          if (mounted) {
+            setState(() {
+              isNotificationsOn = (channel?.myPushTriggerOption !=
+                  GroupChannelPushTriggerOption.off);
+            });
+          }
         }, (error, stack) {
           // TODO: Check error
         });

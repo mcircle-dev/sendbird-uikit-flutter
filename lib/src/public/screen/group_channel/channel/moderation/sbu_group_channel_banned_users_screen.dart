@@ -182,9 +182,11 @@ class SBUGroupChannelBannedUsersScreenState
     final collection = SBUMessageCollectionProvider()
         .getCollection(widget.messageCollectionNo);
     if (collection?.channel.channelUrl == channel.channelUrl) {
-      setState(() {
-        bannedUserList.add(restrictedUser);
-      });
+      if (mounted) {
+        setState(() {
+          bannedUserList.add(restrictedUser);
+        });
+      }
     }
   }
 
@@ -192,10 +194,12 @@ class SBUGroupChannelBannedUsersScreenState
     final collection = SBUMessageCollectionProvider()
         .getCollection(widget.messageCollectionNo);
     if (collection?.channel.channelUrl == channel.channelUrl) {
-      setState(() {
-        bannedUserList
-            .removeWhere((bannedUser) => bannedUser.userId == user.userId);
-      });
+      if (mounted) {
+        setState(() {
+          bannedUserList
+              .removeWhere((bannedUser) => bannedUser.userId == user.userId);
+        });
+      }
     }
   }
 }

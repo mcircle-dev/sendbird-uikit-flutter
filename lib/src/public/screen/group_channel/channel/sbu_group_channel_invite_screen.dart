@@ -160,13 +160,15 @@ class SBUGroupChannelInviteScreenState
                   null,
               user: userList[i],
               onListItemCheckChanged: (isChecked, user) {
-                setState(() {
-                  if (isChecked) {
-                    selectedUserIdList.add(user.userId);
-                  } else {
-                    selectedUserIdList.remove(user.userId);
-                  }
-                });
+                if (mounted) {
+                  setState(() {
+                    if (isChecked) {
+                      selectedUserIdList.add(user.userId);
+                    } else {
+                      selectedUserIdList.remove(user.userId);
+                    }
+                  });
+                }
               },
             );
           },

@@ -126,8 +126,6 @@ class SBUIcons {
       const IconData(0xe833, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static IconData spinner =
       const IconData(0xe834, fontFamily: _kFontFam, fontPackage: _kFontPkg);
-  static IconData theme =
-      const IconData(0xe835, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static IconData streaming =
       const IconData(0xe836, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static IconData supergroup =
@@ -138,6 +136,10 @@ class SBUIcons {
       const IconData(0xe839, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static IconData unarchive =
       const IconData(0xe83a, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static IconData markAsUnread =
+      const IconData(0xe83c, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static IconData theme =
+      const IconData(0xe83d, fontFamily: _kFontFam, fontPackage: _kFontPkg);
 
   /// Sets icons.
   static void setIcons({
@@ -194,12 +196,13 @@ class SBUIcons {
     required IconData search,
     required IconData settingFilled,
     required IconData spinner,
-    required IconData theme,
     required IconData streaming,
     required IconData supergroup,
     required IconData thumbnailNone,
     required IconData user,
     required IconData unarchive,
+    required IconData markAsUnread,
+    required IconData theme,
   }) {
     SBUIcons.add = add;
     SBUIcons.archive = archive;
@@ -254,11 +257,12 @@ class SBUIcons {
     SBUIcons.search = search;
     SBUIcons.settingFilled = settingFilled;
     SBUIcons.spinner = spinner;
-    SBUIcons.theme = theme;
     SBUIcons.streaming = streaming;
     SBUIcons.supergroup = supergroup;
     SBUIcons.thumbnailNone = thumbnailNone;
     SBUIcons.user = user;
     SBUIcons.unarchive = unarchive;
+    SBUIcons.markAsUnread = markAsUnread;
+    SBUIcons.theme = theme;
   }
 }

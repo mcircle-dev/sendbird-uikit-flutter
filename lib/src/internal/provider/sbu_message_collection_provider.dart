@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:sendbird_chat_sdk/sendbird_chat_sdk.dart';
+import 'package:sendbird_uikit/src/internal/utils/sbu_mark_as_unread_manager.dart';
 import 'package:sendbird_uikit/src/internal/utils/sbu_reply_manager.dart';
 
 class SBUMessageCollectionProvider with ChangeNotifier {
@@ -14,6 +15,15 @@ class SBUMessageCollectionProvider with ChangeNotifier {
   final Map<int, BaseMessage?> _editingMessageMap = {};
   final Map<int, BaseMessage?> _replyingToMessageMap = {};
   final Map<int, bool?> _deletedChannelMap = {};
+
+  final Map<String, bool> _isBottomOfScreenMap = {};
+  final Map<String, bool> _didMarkAsUnreadMap = {};
+  final Map<String, bool> _checkUnreadBadgeMap = {};
+  final Map<String, bool> _hasSeenNewMessageLineMap = {};
+  final Map<String, int> _myLastReadMap = {};
+  final Map<String, bool> _freezeMyLastReadMap = {};
+  final Map<String, bool> _enabledNewLineMap = {};
+  final Map<String, int> _newMessageCountMap = {};
 
   SBUMessageCollectionProvider._();
 
@@ -51,6 +61,9 @@ class SBUMessageCollectionProvider with ChangeNotifier {
     if (collection != null) {
       collection.dispose();
       _collectionMap.remove(collectionNo);
+
+      _clearForMarkAsUnread(); // Check
+      _newMessageCountMap.clear(); // Check
     }
   }
 
@@ -60,19 +73,7 @@ class SBUMessageCollectionProvider with ChangeNotifier {
 
   void _refresh([String? channelUrl, CollectionEventSource? eventSource]) {
     _checkScrollToEnd(channelUrl, eventSource);
-
     notifyListeners();
-  }
-
-  void _markAsRead(String channelUrl, MessageContext context) {
-    final collectionNoList = _getCollectionNoList(channelUrl);
-    if (collectionNoList.isNotEmpty) {
-      runZonedGuarded(() {
-        _collectionMap[collectionNoList.first]?.markAsRead(context);
-      }, (error, stack) {
-        // TODO: Check error
-      });
-    }
   }
 
   void _restart(String channelUrl) {
@@ -102,11 +103,20 @@ class SBUMessageCollectionProvider with ChangeNotifier {
     CollectionEventSource? eventSource,
   ) {
     if (channelUrl != null && eventSource != null) {
-      if (eventSource == CollectionEventSource.localMessagePendingCreated ||
-          eventSource == CollectionEventSource.localMessageResendStarted ||
-          eventSource == CollectionEventSource.eventMessageReceived) {
-        for (final collectionNo in _getCollectionNoList(channelUrl)) {
-          _scrollToEndMap[collectionNo] = true;
+      if (SBUMarkAsUnreadManager().isOn()) {
+        if (eventSource == CollectionEventSource.localMessagePendingCreated ||
+            eventSource == CollectionEventSource.localMessageResendStarted) {
+          for (final collectionNo in _getCollectionNoList(channelUrl)) {
+            _scrollToEndMap[collectionNo] = true;
+          }
+        }
+      } else {
+        if (eventSource == CollectionEventSource.localMessagePendingCreated ||
+            eventSource == CollectionEventSource.localMessageResendStarted ||
+            eventSource == CollectionEventSource.eventMessageReceived) {
+          for (final collectionNo in _getCollectionNoList(channelUrl)) {
+            _scrollToEndMap[collectionNo] = true;
+          }
         }
       }
     }
@@ -194,6 +204,327 @@ class SBUMessageCollectionProvider with ChangeNotifier {
     }
     return false;
   }
+
+  // clearForMarkAsUnread()
+  void _clearForMarkAsUnread() {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      _isBottomOfScreenMap.clear();
+      _didMarkAsUnreadMap.clear();
+      _checkUnreadBadgeMap.clear();
+      _hasSeenNewMessageLineMap.clear();
+      _myLastReadMap.clear();
+      _freezeMyLastReadMap.clear();
+      _enabledNewLineMap.clear();
+    }
+  }
+
+  // _isBottomOfScreenMap
+  void setBottomOfScreen(String channelUrl, bool value) {
+    _isBottomOfScreenMap[channelUrl] = value;
+  }
+
+  bool isBottomOfScreen(String channelUrl) {
+    return _isBottomOfScreenMap[channelUrl] ?? true; // Check
+  }
+
+  // _didMarkAsUnreadMap
+  void _setDidMarkAsUnread(String channelUrl) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      _didMarkAsUnreadMap[channelUrl] = true;
+    }
+  }
+
+  bool didMarkAsUnread(String channelUrl) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      return _didMarkAsUnreadMap[channelUrl] ?? false;
+    }
+    return false;
+  }
+
+  // _checkUnreadBadgeMap
+  void setCheckUnreadBadge(String channelUrl) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      _checkUnreadBadgeMap[channelUrl] = true;
+    }
+  }
+
+  bool getCheckUnreadBadge(String channelUrl) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      return _checkUnreadBadgeMap[channelUrl] ?? false;
+    }
+    return false;
+  }
+
+  // _hasSeenNewMessageLineMap
+  void setHasSeenNewMessageLine(String channelUrl, bool value) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      _hasSeenNewMessageLineMap[channelUrl] = value;
+    }
+  }
+
+  bool hasSeenNewMessageLine(String channelUrl) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      return _hasSeenNewMessageLineMap[channelUrl] ?? false;
+    }
+    return false;
+  }
+
+  // _myLastReadMap
+  void setMyLastRead(String channelUrl, int myLastRead) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      if (_isFreezeMyLastRead(channelUrl)) {
+        return;
+      }
+      _myLastReadMap[channelUrl] = myLastRead;
+    }
+  }
+
+  int? getMyLastRead(String channelUrl) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      return _myLastReadMap[channelUrl];
+    }
+    return null;
+  }
+
+  void setFreezeMyLastRead(String channelUrl, bool value) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      _freezeMyLastReadMap[channelUrl] = value;
+    }
+  }
+
+  bool _isFreezeMyLastRead(String channelUrl) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      return _freezeMyLastReadMap[channelUrl] ?? false;
+    }
+    return false;
+  }
+
+  // _enabledNewLineMap
+  void enableNewLine(String channelUrl) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      _enabledNewLineMap[channelUrl] = true;
+    }
+  }
+
+  bool isEnabledNewLine(String channelUrl) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      return _enabledNewLineMap[channelUrl] ?? false; // Check
+    }
+    return true;
+  }
+
+  // _newMessageCountMap
+  void _increaseNewMessageCount(String channelUrl) {
+    if (_newMessageCountMap[channelUrl] == null) {
+      _newMessageCountMap[channelUrl] = 1;
+    } else {
+      _newMessageCountMap[channelUrl] = _newMessageCountMap[channelUrl]! + 1;
+    }
+  }
+
+  void _decreaseNewMessageCount(String channelUrl) {
+    if (_newMessageCountMap[channelUrl] != null) {
+      final count = _newMessageCountMap[channelUrl]!;
+      if (count >= 1) {
+        _newMessageCountMap[channelUrl] = count - 1;
+      }
+    }
+  }
+
+  void _resetNewMessageCount(String channelUrl) {
+    _newMessageCountMap.remove(channelUrl);
+  }
+
+  int getNewMessageCount(String channelUrl) {
+    return _newMessageCountMap[channelUrl] ?? 0;
+  }
+
+  void _messagesAdded(MessageContext context, GroupChannel channel,
+      List<BaseMessage> messages) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      if (context.collectionEventSource ==
+              CollectionEventSource.localMessagePendingCreated ||
+          context.collectionEventSource ==
+              CollectionEventSource.localMessageResendStarted) {
+        // Nothing to do (Check)
+      }
+
+      if (context.collectionEventSource ==
+          CollectionEventSource.eventMessageReceived) {
+        bool isMyMessageFromMultiDevice = false;
+        if (messages.isNotEmpty) {
+          if (messages[0].sender?.userId ==
+              (SendbirdChat.currentUser?.userId ?? "")) {
+            isMyMessageFromMultiDevice = true;
+          }
+        }
+
+        if (isMyMessageFromMultiDevice) {
+          // Nothing to do (Check)
+        } else {
+          if (isBottomOfScreen(channel.channelUrl)) {
+            if (messages.isNotEmpty) {
+              checkToMarkAsRead(channel, newMessage: messages[0]);
+            }
+          } else {
+            if (messages[0].isSilent == false) {
+              _increaseNewMessageCount(channel.channelUrl);
+            }
+          }
+        }
+      }
+    } else {
+      final collectionNoList = _getCollectionNoList(channel.channelUrl);
+      if (collectionNoList.isNotEmpty) {
+        runZonedGuarded(() {
+          _collectionMap[collectionNoList.first]?.markAsRead(context);
+        }, (error, stack) {
+          // Check
+        });
+      }
+    }
+  }
+
+  void _messagesUpdated(MessageContext context, GroupChannel channel,
+      List<BaseMessage> messages) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      if (context.collectionEventSource ==
+          CollectionEventSource.eventMessageSent) {
+        if (messages.isNotEmpty) {
+          checkToMarkAsRead(channel, newMessage: messages[0]); // Check
+        }
+      } else if (context.collectionEventSource ==
+              CollectionEventSource.localMessageFailed ||
+          context.collectionEventSource ==
+              CollectionEventSource.localMessageCanceled) {
+        // Nothing to do (Check)
+      }
+    }
+  }
+
+  void _messagesDeleted(MessageContext context, GroupChannel channel,
+      List<BaseMessage> messages) {
+    if (messages.isNotEmpty) {
+      final deletedMessageCreatedAt = messages[0].createdAt;
+
+      final collectionNoList = _getCollectionNoList(channel.channelUrl);
+      for (final collectionNo in collectionNoList) {
+        final collection = getCollection(collectionNo);
+        if (collection != null) {
+          final newMessageCount = getNewMessageCount(channel.channelUrl);
+          if (newMessageCount > 0 &&
+              newMessageCount - 1 < collection.messageList.length) {
+            final firstNewMessage = collection.messageList[newMessageCount - 1];
+
+            // Check
+            if (deletedMessageCreatedAt >= firstNewMessage.createdAt) {
+              _decreaseNewMessageCount(channel.channelUrl);
+            }
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  void _channelUpdated(GroupChannelContext context, GroupChannel channel) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      final isUserMarkedRead = context.collectionEventSource ==
+          CollectionEventSource.eventUserMarkedRead;
+      final isUserMarkedUnread = context.collectionEventSource ==
+          CollectionEventSource.eventUserMarkedUnread;
+      if (isUserMarkedRead || isUserMarkedUnread) {
+        if (isUserMarkedUnread) {
+          enableNewLine(channel.channelUrl); // Check
+        }
+
+        final userIds = context.eventDetail as List<String>;
+        bool myEvent = (userIds.isNotEmpty &&
+            userIds[0] == (SendbirdChat.currentUser?.userId ?? ""));
+
+        if (myEvent) {
+          if (isUserMarkedRead) {
+            if (channel.myLastRead == (channel.lastMessage?.createdAt ?? 0)) {
+              _resetNewMessageCount(channel.channelUrl);
+              setMyLastRead(channel.channelUrl, channel.myLastRead);
+            }
+          } else if (isUserMarkedUnread) {
+            if (channel.myLastRead < (channel.lastMessage?.createdAt ?? 0)) {
+              _setDidMarkAsUnread(channel.channelUrl);
+              setCheckUnreadBadge(channel.channelUrl);
+              setFreezeMyLastRead(channel.channelUrl, false);
+              setMyLastRead(channel.channelUrl, channel.myLastRead);
+              setFreezeMyLastRead(channel.channelUrl, true);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void checkToMarkAsRead(
+    GroupChannel channel, {
+    BaseMessage? newMessage,
+  }) {
+    if (SBUMarkAsUnreadManager().isOn()) {
+      if (newMessage != null) {
+        setMyLastRead(channel.channelUrl, SendbirdChat.maxInt); // Check
+      }
+
+      if (newMessage?.isSilent ?? false) {
+        return; // Check
+      }
+
+      if (_canMarkAsRead(channel, newMessage: newMessage)) {
+        runZonedGuarded(() async {
+          channel.markAsRead(); // No await
+        }, (error, stack) {
+          // Check
+        });
+      } else if (newMessage == null) {
+        _resetNewMessageCount(channel.channelUrl); // Check
+      }
+    }
+  }
+
+  bool _canMarkAsRead(
+    GroupChannel channel, {
+    BaseMessage? newMessage,
+  }) {
+    final collectionNoList = _getCollectionNoList(channel.channelUrl);
+    for (final collectionNo in collectionNoList) {
+      final collection = _collectionMap[collectionNo];
+      if (collection != null) {
+        final newMessageCount = getNewMessageCount(channel.channelUrl);
+        final hasSeenNewLine = hasSeenNewMessageLine(channel.channelUrl);
+
+        if (newMessageCount > 0 &&
+            newMessageCount < collection.messageList.length) {
+          if (channel.myLastRead ==
+              collection.messageList[newMessageCount].createdAt) {
+            return true;
+          } else if (channel.myLastRead <
+                  collection.messageList[newMessageCount].createdAt &&
+              hasSeenNewLine == false &&
+              newMessage == null) {
+            return false; // Sent by me
+          }
+        } else if (newMessageCount == 0 && collection.messageList.length >= 2) {
+          final prevMessage = collection.messageList[1];
+          if (prevMessage.isSilent == false) {
+            if (channel.myLastRead == prevMessage.createdAt) {
+              return true;
+            } else if (channel.myLastRead < prevMessage.createdAt &&
+                hasSeenNewLine == false) {
+              return false;
+            }
+          }
+        }
+        break;
+      }
+    }
+    return true;
+  }
 }
 
 class _MyMessageCollectionHandler extends MessageCollectionHandler {
@@ -205,7 +536,7 @@ class _MyMessageCollectionHandler extends MessageCollectionHandler {
   @override
   void onMessagesAdded(MessageContext context, GroupChannel channel,
       List<BaseMessage> messages) async {
-    _provider._markAsRead(channel.channelUrl, context);
+    _provider._messagesAdded(context, channel, messages);
 
     //+ Anti-flicker
     if (context.collectionEventSource ==
@@ -223,17 +554,20 @@ class _MyMessageCollectionHandler extends MessageCollectionHandler {
   @override
   void onMessagesUpdated(MessageContext context, GroupChannel channel,
       List<BaseMessage> messages) {
+    _provider._messagesUpdated(context, channel, messages);
     _provider._refresh(channel.channelUrl, context.collectionEventSource);
   }
 
   @override
   void onMessagesDeleted(MessageContext context, GroupChannel channel,
       List<BaseMessage> messages) {
+    _provider._messagesDeleted(context, channel, messages);
     _provider._refresh(channel.channelUrl, context.collectionEventSource);
   }
 
   @override
   void onChannelUpdated(GroupChannelContext context, GroupChannel channel) {
+    _provider._channelUpdated(context, channel);
     _provider._refresh(channel.channelUrl, context.collectionEventSource);
   }
 

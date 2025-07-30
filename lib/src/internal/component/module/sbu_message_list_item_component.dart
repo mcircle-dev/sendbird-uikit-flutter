@@ -18,6 +18,7 @@ import 'package:sendbird_uikit/src/internal/component/basic/sbu_reaction_compone
 import 'package:sendbird_uikit/src/internal/component/basic/sbu_text_component.dart';
 import 'package:sendbird_uikit/src/internal/provider/sbu_message_collection_provider.dart';
 import 'package:sendbird_uikit/src/internal/resource/sbu_text_styles.dart';
+import 'package:sendbird_uikit/src/internal/utils/sbu_mark_as_unread_manager.dart';
 import 'package:sendbird_uikit/src/internal/utils/sbu_ogtag_manager.dart';
 import 'package:sendbird_uikit/src/internal/utils/sbu_reaction_manager.dart';
 import 'package:sendbird_uikit/src/internal/utils/sbu_reply_manager.dart';
@@ -68,6 +69,12 @@ class SBUMessageListItemComponentState
 
     final isSameDayAtPreviousMessage =
         _isSameDayAtPreviousMessage(collection, messageList, messageIndex);
+
+    final hasNewMessageLine = SBUMarkAsUnreadManager().hasNewMessageLine(
+      collection: collection,
+      messageList: messageList,
+      messageIndex: messageIndex,
+    );
 
     isReactionAvailable =
         SBUReactionManager().isReactionAvailable(collection.channel, message);
@@ -154,11 +161,46 @@ class SBUMessageListItemComponentState
               ),
             ),
           ),
+        if (hasNewMessageLine) _newMessageLineWidget(isLightTheme, strings),
         if (messageWidget != null) messageWidget,
       ],
     );
 
     return messageWidget != null ? messageWidgetWithDay : Container();
+  }
+
+  Widget _newMessageLineWidget(bool isLightTheme, SBUStrings strings) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      // height: 12,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Container(
+              height: 1,
+              color:
+                  isLightTheme ? SBUColors.primaryMain : SBUColors.primaryLight,
+            ),
+          ),
+          const SizedBox(width: 4),
+          SBUTextComponent(
+            text: strings.newMessages,
+            textType: SBUTextType.caption3,
+            textColorType: SBUTextColorType.primary,
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Container(
+              height: 1,
+              color:
+                  isLightTheme ? SBUColors.primaryMain : SBUColors.primaryLight,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget? _adminMessageWidget(
@@ -626,12 +668,16 @@ class SBUMessageListItemComponentState
                           message: message,
                           iconNames: [
                             SBUIcons.copy,
+                            if (SBUMarkAsUnreadManager().isOn())
+                              SBUIcons.markAsUnread,
                             if (SBUReplyManager()
                                 .isQuoteReplyAvailable(collection.channel))
                               SBUIcons.reply,
                           ],
                           buttonNames: [
                             strings.copy,
+                            if (SBUMarkAsUnreadManager().isOn())
+                              strings.markAsUnread,
                             if (SBUReplyManager()
                                 .isQuoteReplyAvailable(collection.channel))
                               strings.reply,
@@ -640,6 +686,8 @@ class SBUMessageListItemComponentState
                             if (buttonName == strings.copy) {
                               await widget.copyTextToClipboard(
                                   message.message, strings);
+                            } else if (buttonName == strings.markAsUnread) {
+                              await _markAsUnread(collection.channel, message);
                             } else if (buttonName == strings.reply) {
                               SBUMessageCollectionProvider()
                                   .setReplyingToMessage(
@@ -714,17 +762,17 @@ class SBUMessageListItemComponentState
             ],
           ),
         ),
-        if (isSameMinuteAtNextMessage == false)
-          Container(
-            height: 16,
-            alignment: AlignmentDirectional.center,
-            padding: const EdgeInsets.only(left: 4),
-            child: SBUTextComponent(
-              text: timeString,
-              textType: SBUTextType.caption4,
-              textColorType: SBUTextColorType.text03,
-            ),
+        Container(
+          height: 16,
+          alignment: AlignmentDirectional.center,
+          padding: const EdgeInsets.only(left: 4),
+          child: SBUTextComponent(
+            text: timeString,
+            textType: SBUTextType.caption4,
+            textColorType: SBUTextColorType.text03,
+            transparent: isSameMinuteAtNextMessage,
           ),
+        ),
       ],
     );
   }
@@ -747,6 +795,19 @@ class SBUMessageListItemComponentState
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
+        if (message.sendingStatus == SendingStatus.succeeded &&
+            isSameMinuteAtNextMessage)
+          Container(
+            height: 16,
+            alignment: AlignmentDirectional.center,
+            padding: const EdgeInsets.only(right: 4),
+            child: SBUTextComponent(
+              text: timeString,
+              textType: SBUTextType.caption4,
+              textColorType: SBUTextColorType.text03,
+              transparent: isSameMinuteAtNextMessage,
+            ),
+          ),
         if (readStatusIcon != null)
           Padding(
             padding: const EdgeInsets.only(right: 4, bottom: 2),
@@ -815,6 +876,8 @@ class SBUMessageListItemComponentState
                         iconNames: [
                           SBUIcons.copy,
                           if (!isDisabled) SBUIcons.edit,
+                          if (SBUMarkAsUnreadManager().isOn())
+                            SBUIcons.markAsUnread,
                           if (!isDisabled)
                             if (SBUMessageCollectionProvider().canDeleteMessage(
                                 widget.messageCollectionNo, message))
@@ -826,6 +889,8 @@ class SBUMessageListItemComponentState
                         buttonNames: [
                           strings.copy,
                           if (!isDisabled) strings.edit,
+                          if (SBUMarkAsUnreadManager().isOn())
+                            strings.markAsUnread,
                           if (!isDisabled)
                             if (SBUMessageCollectionProvider().canDeleteMessage(
                                 widget.messageCollectionNo, message))
@@ -841,6 +906,8 @@ class SBUMessageListItemComponentState
                           } else if (buttonName == strings.edit) {
                             SBUMessageCollectionProvider().setEditingMessage(
                                 widget.messageCollectionNo, message);
+                          } else if (buttonName == strings.markAsUnread) {
+                            await _markAsUnread(collection.channel, message);
                           } else if (buttonName == strings.delete) {
                             await showDialog(
                               context: context,
@@ -1067,7 +1134,12 @@ class SBUMessageListItemComponentState
                     }
                   },
                   onLongPress: () async {
-                    if (SendbirdUIKit().downloadFile == null) {
+                    if (!SBUReactionManager()
+                            .isReactionAvailable(collection.channel, message) &&
+                        SendbirdUIKit().downloadFile == null &&
+                        !SBUReplyManager()
+                            .isQuoteReplyAvailable(collection.channel) &&
+                        !SBUMarkAsUnreadManager().isOn()) {
                       return;
                     }
 
@@ -1088,6 +1160,8 @@ class SBUMessageListItemComponentState
                           iconNames: [
                             if (SendbirdUIKit().downloadFile != null)
                               SBUIcons.download,
+                            if (SBUMarkAsUnreadManager().isOn())
+                              SBUIcons.markAsUnread,
                             if (SBUReplyManager()
                                 .isQuoteReplyAvailable(collection.channel))
                               SBUIcons.reply,
@@ -1095,11 +1169,13 @@ class SBUMessageListItemComponentState
                           buttonNames: [
                             if (SendbirdUIKit().downloadFile != null)
                               strings.save,
+                            if (SBUMarkAsUnreadManager().isOn())
+                              strings.markAsUnread,
                             if (SBUReplyManager()
                                 .isQuoteReplyAvailable(collection.channel))
                               strings.reply,
                           ],
-                          onButtonClicked: (buttonName) {
+                          onButtonClicked: (buttonName) async {
                             if (buttonName == strings.save) {
                               SendbirdUIKit().downloadFile!(
                                 message.secureUrl,
@@ -1109,6 +1185,8 @@ class SBUMessageListItemComponentState
                                   text: strings.fileSaved,
                                 ),
                               );
+                            } else if (buttonName == strings.markAsUnread) {
+                              await _markAsUnread(collection.channel, message);
                             } else if (buttonName == strings.reply) {
                               SBUMessageCollectionProvider()
                                   .setReplyingToMessage(
@@ -1174,17 +1252,17 @@ class SBUMessageListItemComponentState
             ],
           ),
         ),
-        if (isSameMinuteAtNextMessage == false)
-          Container(
-            height: 16,
-            alignment: AlignmentDirectional.center,
-            padding: const EdgeInsets.only(left: 4),
-            child: SBUTextComponent(
-              text: timeString,
-              textType: SBUTextType.caption4,
-              textColorType: SBUTextColorType.text03,
-            ),
+        Container(
+          height: 16,
+          alignment: AlignmentDirectional.center,
+          padding: const EdgeInsets.only(left: 4),
+          child: SBUTextComponent(
+            text: timeString,
+            textType: SBUTextType.caption4,
+            textColorType: SBUTextColorType.text03,
+            transparent: isSameMinuteAtNextMessage,
           ),
+        ),
       ],
     );
   }
@@ -1215,6 +1293,19 @@ class SBUMessageListItemComponentState
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
+        if (message.sendingStatus == SendingStatus.succeeded &&
+            isSameMinuteAtNextMessage)
+          Container(
+            height: 16,
+            alignment: AlignmentDirectional.center,
+            padding: const EdgeInsets.only(right: 4),
+            child: SBUTextComponent(
+              text: timeString,
+              textType: SBUTextType.caption4,
+              textColorType: SBUTextColorType.text03,
+              transparent: isSameMinuteAtNextMessage,
+            ),
+          ),
         if (readStatusIcon != null)
           Padding(
             padding: const EdgeInsets.only(right: 4, bottom: 2),
@@ -1266,7 +1357,13 @@ class SBUMessageListItemComponentState
               },
               onLongPress: () async {
                 if (message.sendingStatus == SendingStatus.succeeded) {
-                  if (SendbirdUIKit().downloadFile == null && isDisabled) {
+                  if (!SBUReactionManager()
+                          .isReactionAvailable(collection.channel, message) &&
+                      SendbirdUIKit().downloadFile == null &&
+                      isDisabled &&
+                      !SBUReplyManager()
+                          .isQuoteReplyAvailable(collection.channel) &&
+                      !SBUMarkAsUnreadManager().isOn()) {
                     return;
                   }
 
@@ -1287,6 +1384,8 @@ class SBUMessageListItemComponentState
                         iconNames: [
                           if (SendbirdUIKit().downloadFile != null)
                             SBUIcons.download,
+                          if (SBUMarkAsUnreadManager().isOn())
+                            SBUIcons.markAsUnread,
                           if (!isDisabled)
                             if (SBUMessageCollectionProvider().canDeleteMessage(
                                 widget.messageCollectionNo, message))
@@ -1298,6 +1397,8 @@ class SBUMessageListItemComponentState
                         buttonNames: [
                           if (SendbirdUIKit().downloadFile != null)
                             strings.save,
+                          if (SBUMarkAsUnreadManager().isOn())
+                            strings.markAsUnread,
                           if (!isDisabled)
                             if (SBUMessageCollectionProvider().canDeleteMessage(
                                 widget.messageCollectionNo, message))
@@ -1316,6 +1417,8 @@ class SBUMessageListItemComponentState
                                 text: strings.fileSaved,
                               ),
                             );
+                          } else if (buttonName == strings.markAsUnread) {
+                            await _markAsUnread(collection.channel, message);
                           } else if (buttonName == strings.delete) {
                             await showDialog(
                               context: context,
@@ -1700,5 +1803,9 @@ class SBUMessageListItemComponentState
     }
 
     return result;
+  }
+
+  Future<void> _markAsUnread(GroupChannel channel, BaseMessage message) async {
+    await SBUMarkAsUnreadManager().markAsUnread(channel, message);
   }
 }

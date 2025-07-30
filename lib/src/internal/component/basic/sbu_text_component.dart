@@ -1,7 +1,6 @@
 // Copyright (c) 2024 Sendbird, Inc. All rights reserved.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:sendbird_uikit/src/internal/component/base/sbu_base_component.dart';
 import 'package:sendbird_uikit/src/internal/resource/sbu_text_styles.dart';
@@ -19,6 +18,7 @@ class SBUTextComponent extends SBUStatefulComponent {
   final SBUTextColorType textColorType;
   final SBUTextOverflowType? textOverflowType;
   final int? maxLines;
+  final bool? transparent;
 
   const SBUTextComponent({
     required this.text,
@@ -26,6 +26,7 @@ class SBUTextComponent extends SBUStatefulComponent {
     required this.textColorType,
     this.textOverflowType = SBUTextOverflowType.ellipsisEnd,
     this.maxLines = 1,
+    this.transparent = false,
     super.key,
   });
 
@@ -44,11 +45,17 @@ class SBUTextComponentState extends State<SBUTextComponent> {
     final textOverflowType = widget.textOverflowType;
     final maxLines = widget.maxLines;
 
-    final textStyle = SBUTextStyles.getTextStyle(
+    TextStyle textStyle = SBUTextStyles.getTextStyle(
       theme: theme,
       textType: textType,
       textColorType: textColorType,
     );
+
+    if (widget.transparent == true) {
+      textStyle = textStyle.copyWith(
+        color: Colors.transparent,
+      );
+    }
 
     TextOverflow? overflow;
     if (textOverflowType != null) {
