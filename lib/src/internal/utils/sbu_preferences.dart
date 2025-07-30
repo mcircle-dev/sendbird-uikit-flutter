@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:sendbird_chat_sdk/sendbird_chat_sdk.dart';
 import 'package:sendbird_uikit/src/internal/utils/sbu_emoji_cache.dart';
 import 'package:sendbird_uikit/src/internal/utils/sbu_thumbnail_cache.dart';
+import 'package:sendbird_uikit/src/internal/utils/sbu_uikit_configutation_cache.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SBUPreferences {
@@ -13,6 +14,9 @@ class SBUPreferences {
   static const String prefDoNotDisturb = 'prefDoNotDisturb';
   static const String prefSBUThumbnailCaches = 'prefSBUThumbnailCaches';
   static const String prefSBUEmojiCaches = 'prefSBUEmojiCaches';
+  static const String prefConfigurationLastUpdatedAt =
+      'prefConfigurationLastUpdatedAt';
+  static const String prefSBUConfigurationCaches = 'prefSBUConfigurationCaches';
 
   SBUPreferences._();
 
@@ -24,11 +28,13 @@ class SBUPreferences {
 
   final List<SBUThumbnailCache> _thumbnailCaches = [];
   final List<SBUEmojiCache> _emojiCaches = [];
+  final List<SBUConfigurationCache> _configurationCaches = [];
 
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
     initializeThumbnailCaches();
     initializeEmojiCaches();
+    initializeConfigurationCaches();
   }
 
   Future<void> clear() async {
@@ -37,6 +43,8 @@ class SBUPreferences {
     await SBUPreferences().removeDoNotDisturb();
     await SBUPreferences().removeThumbnailCaches();
     await SBUPreferences().removeEmojiCaches();
+    await SBUPreferences().removeConfigurationLastUpdatedAt();
+    await SBUPreferences().removeConfigurationCaches();
   }
 
   // Dark theme
@@ -189,5 +197,73 @@ class SBUPreferences {
   Future<bool> removeEmojiCaches() async {
     _emojiCaches.clear();
     return await _prefs.remove(prefSBUEmojiCaches);
+  }
+
+  // Configuration lastUpdatedAt
+  Future<bool> setConfigurationLastUpdatedAt(int value) async {
+    return await _prefs.setInt(prefConfigurationLastUpdatedAt, value);
+  }
+
+  int getConfigurationLastUpdatedAt() {
+    return _prefs.getInt(prefConfigurationLastUpdatedAt) ?? 0;
+  }
+
+  Future<bool> removeConfigurationLastUpdatedAt() async {
+    return await _prefs.remove(prefConfigurationLastUpdatedAt);
+  }
+
+  // Configuration caches
+  List<SBUConfigurationCache> initializeConfigurationCaches() {
+    _configurationCaches.clear();
+
+    final caches = _prefs.getString(prefSBUConfigurationCaches);
+    if (caches != null) {
+      final decode = jsonDecode(caches);
+      if (decode is List<dynamic>) {
+        for (final cache in decode) {
+          _configurationCaches.add(SBUConfigurationCache.fromJson(cache));
+        }
+      }
+    }
+    return _configurationCaches;
+  }
+
+  Future<List<SBUConfigurationCache>?> setConfigurationCaches(
+    Map<String, bool> configurations,
+  ) async {
+    if (configurations.isNotEmpty) {
+      List<SBUConfigurationCache> configurationCacheList = [];
+      for (final configuration in configurations.entries) {
+        configurationCacheList.add(SBUConfigurationCache(
+            key: configuration.key, value: configuration.value));
+      }
+
+      _configurationCaches.clear();
+      _configurationCaches.addAll(configurationCacheList);
+      final encode = jsonEncode(_configurationCaches);
+      final result = await _prefs.setString(prefSBUConfigurationCaches, encode);
+      if (result) {
+        return _configurationCaches;
+      }
+    }
+    return null;
+  }
+
+  List<SBUConfigurationCache> getConfigurationCacheList() {
+    return _configurationCaches;
+  }
+
+  bool? getConfigurationCache(String key) {
+    for (final configuration in _configurationCaches) {
+      if (configuration.key == key) {
+        return configuration.value;
+      }
+    }
+    return null;
+  }
+
+  Future<bool> removeConfigurationCaches() async {
+    _configurationCaches.clear();
+    return await _prefs.remove(prefSBUConfigurationCaches);
   }
 }

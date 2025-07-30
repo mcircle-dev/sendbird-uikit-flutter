@@ -10,6 +10,8 @@ import 'package:sendbird_uikit/sendbird_uikit.dart';
 import 'package:sendbird_uikit/src/internal/provider/sbu_group_channel_collection_provider.dart';
 import 'package:sendbird_uikit/src/internal/provider/sbu_message_collection_provider.dart';
 import 'package:sendbird_uikit/src/internal/resource/sbu_text_styles.dart';
+import 'package:sendbird_uikit/src/internal/utils/sbu_configuration_manager.dart';
+import 'package:sendbird_uikit/src/internal/utils/sbu_mark_as_unread_manager.dart';
 import 'package:sendbird_uikit/src/internal/utils/sbu_ogtag_manager.dart';
 import 'package:sendbird_uikit/src/internal/utils/sbu_preferences.dart';
 import 'package:sendbird_uikit/src/internal/utils/sbu_reaction_manager.dart';
@@ -18,7 +20,7 @@ import 'package:sendbird_uikit/src/internal/utils/sbu_reply_manager.dart';
 /// SendbirdUIKit
 class SendbirdUIKit {
   /// UIKit version
-  static const version = '1.0.3';
+  static const version = '1.1.0';
 
   SendbirdUIKit._();
 
@@ -108,6 +110,7 @@ class SendbirdUIKit {
     bool useReaction = true, // This feature is not supported on the web.
     bool useOGTag = true,
     SBUReplyType replyType = SBUReplyType.quoteReply,
+    bool? useMarkAsUnread,
   }) async {
     SendbirdChat.addExtension('sb_uikit', version);
 
@@ -131,6 +134,7 @@ class SendbirdUIKit {
     SBUReactionManager().useReaction = useReaction;
     SBUOGTagManager().useOGTag = useOGTag;
     SBUReplyManager().replyType = replyType;
+    SBUMarkAsUnreadManager().useMarkAsUnread = useMarkAsUnread;
 
     _uikit._isInitialized = true;
     return true;
@@ -159,6 +163,7 @@ class SendbirdUIKit {
         wsHost: wsHost,
       );
 
+      SBUConfigurationManager().checkConfiguration(); // No await
       SBUReactionManager().initEmojiList(); // No await
     } catch (_) {
       result = false;

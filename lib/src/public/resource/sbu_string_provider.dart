@@ -79,6 +79,10 @@ class SBUStrings {
   String noMessages;
   String fileSaved;
   String Function(String uploadSizeLimit) theMaximumSizePerFileIsMB;
+  String markAsUnread;
+  String newMessages;
+  String Function(String count) unreadMessageCount;
+  String Function(String count) newMessageCount;
 
   // GroupChannel information
   String channelInformation;
@@ -169,6 +173,10 @@ class SBUStrings {
     required this.noMessages,
     required this.fileSaved,
     required this.theMaximumSizePerFileIsMB,
+    required this.markAsUnread,
+    required this.newMessages,
+    required this.unreadMessageCount,
+    required this.newMessageCount,
 
     // GroupChannel information
     required this.channelInformation,
@@ -261,6 +269,15 @@ class SBUStrings {
     fileSaved: 'File saved',
     theMaximumSizePerFileIsMB: (uploadSizeLimit) =>
         'The maximum size per file is $uploadSizeLimit MB',
+    markAsUnread: 'Mark as unread',
+    newMessages: 'New messages',
+    unreadMessageCount: (count) => (int.parse(count) == 1
+        ? '1 unread message'
+        : (int.parse(count) > 99
+            ? '99+ unread messages'
+            : '$count unread messages')),
+    newMessageCount: (count) =>
+        (int.parse(count) == 1 ? '1 new message' : '$count new messages'),
 
     // GroupChannel information
     channelInformation: 'Channel information',

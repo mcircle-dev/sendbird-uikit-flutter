@@ -1,3 +1,8 @@
+## v1.1.0 (Jul 30, 2025)
+
+### Features
+- Added a `useMarkAsUnread` parameter in `SendbirdUIKit.init()` (The default value is false)
+
 ## v1.0.3 (May 7, 2025)
 
 ### Improvements

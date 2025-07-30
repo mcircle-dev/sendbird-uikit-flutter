@@ -426,9 +426,11 @@ class SBUMessageInputComponentState extends State<SBUMessageInputComponent> {
                         ),
                         onButtonClicked: () {
                           if (textEditingController.text.isNotEmpty) {
-                            setState(() {
-                              showSendButton = false;
-                            });
+                            if (mounted) {
+                              setState(() {
+                                showSendButton = false;
+                              });
+                            }
 
                             channel.sendUserMessage(
                               UserMessageCreateParams(
