@@ -117,6 +117,12 @@ class SBUStrings {
   String inviteMembers;
   String invite;
 
+  // Waiting for connection
+  String youWillBeReconnectedShortly;
+  String estimatedWaitingTime;
+  String refresh;
+  String close;
+
   SBUStrings({
     // GroupChannel list
     required this.channels,
@@ -210,6 +216,12 @@ class SBUStrings {
     // GroupChannel invite
     required this.inviteMembers,
     required this.invite,
+
+    // Waiting for connection
+    required this.youWillBeReconnectedShortly,
+    required this.estimatedWaitingTime,
+    required this.refresh,
+    required this.close,
   });
 
   static SBUStrings defaultStrings = SBUStrings(
@@ -311,5 +323,12 @@ class SBUStrings {
     // GroupChannel invite
     inviteMembers: 'Invite members',
     invite: 'Invite',
+
+    // Waiting for connection
+    youWillBeReconnectedShortly:
+        'Something went wrong.\nYou\'ll be reconnected shortly.',
+    estimatedWaitingTime: 'Estimated waiting time:',
+    refresh: 'Refresh',
+    close: 'Close',
   );
 }

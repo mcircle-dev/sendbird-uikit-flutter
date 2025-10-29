@@ -81,7 +81,9 @@ class SBUBottomSheetUserComponentState
                         ..name = ''
                         ..isDistinct = false,
                     ).then((channel) {
-                      Navigator.pop(context);
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                      }
 
                       on1On1ChannelCreated(channel);
                     });

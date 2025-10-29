@@ -1,3 +1,8 @@
+## v1.2.0 (Oct 29, 2025)
+
+### Features
+- Added a `navigatorKey` parameter in `SendbirdUIKit.init()` to show the delayed connecting dialog
+
 ## v1.1.0 (Jul 30, 2025)
 
 ### Features

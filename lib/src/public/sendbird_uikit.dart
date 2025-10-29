@@ -2,11 +2,12 @@
 
 import 'dart:async';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sendbird_chat_sdk/sendbird_chat_sdk.dart';
 import 'package:sendbird_uikit/sendbird_uikit.dart';
+import 'package:sendbird_uikit/src/internal/component/dialog/sbu_delayed_connecting_dialog.dart';
 import 'package:sendbird_uikit/src/internal/provider/sbu_group_channel_collection_provider.dart';
 import 'package:sendbird_uikit/src/internal/provider/sbu_message_collection_provider.dart';
 import 'package:sendbird_uikit/src/internal/resource/sbu_text_styles.dart';
@@ -20,7 +21,7 @@ import 'package:sendbird_uikit/src/internal/utils/sbu_reply_manager.dart';
 /// SendbirdUIKit
 class SendbirdUIKit {
   /// UIKit version
-  static const version = '1.1.0';
+  static const version = '1.2.0';
 
   SendbirdUIKit._();
 
@@ -29,6 +30,11 @@ class SendbirdUIKit {
   factory SendbirdUIKit() => _uikit;
 
   bool _isInitialized = false;
+
+  // DelayedConnectingDialog
+  GlobalKey<NavigatorState>? _navigatorKey;
+  BuildContext? _currentDialogContext;
+  bool? _addCloseButtonInDelayedConnectingDialog;
 
   Future<FileInfo?> Function()? _takePhoto;
 
@@ -97,6 +103,9 @@ class SendbirdUIKit {
     required String appId,
     SendbirdChatOptions? options,
     SBUTheme? theme,
+    GlobalKey<NavigatorState>?
+        navigatorKey, // To show the delayed connecting dialog
+    bool addCloseButtonInDelayedConnectingDialog = false,
     Future<FileInfo?> Function()? takePhoto,
     Future<FileInfo?> Function()? takeVideo,
     Future<FileInfo?> Function()? choosePhoto,
@@ -119,10 +128,17 @@ class SendbirdUIKit {
       options: options,
     );
 
+    SendbirdChat.addConnectionHandler(
+        'sendbird-uikit-flutter', _MyConnectionHandler());
+
     await SBUPreferences().initialize();
     if (theme != null) {
       SBUThemeProvider().setTheme(theme);
     }
+
+    _uikit._navigatorKey = navigatorKey;
+    _uikit._addCloseButtonInDelayedConnectingDialog =
+        addCloseButtonInDelayedConnectingDialog;
 
     _uikit._takePhoto = takePhoto;
     _uikit._takeVideo = takeVideo;
@@ -203,5 +219,65 @@ class SendbirdUIKit {
   /// Sets fontFamily.
   static void setFontFamily(String fontFamily) {
     SBUTextStyles.fontFamily = fontFamily;
+  }
+
+  // Shows the delayed connecting dialog with retryAfter time.
+  static void _showDelayedConnectingDialog(int retryAfter) {
+    final context = _uikit._navigatorKey?.currentContext;
+    if (context != null) {
+      if (_uikit._currentDialogContext != null) {
+        Navigator.of(_uikit._currentDialogContext!, rootNavigator: true).pop();
+        _uikit._currentDialogContext = null;
+      }
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          _uikit._currentDialogContext = dialogContext;
+          return SBUDelayedConnectingDialog(
+            retryAfter: retryAfter,
+            showCloseButton:
+                _uikit._addCloseButtonInDelayedConnectingDialog ?? false,
+          );
+        },
+      ).then((_) {
+        _uikit._currentDialogContext = null;
+      });
+    }
+  }
+
+  // Dismisses the delayed connecting dialog if it is currently shown.
+  static void _dismissDelayedConnectingDialog() {
+    if (_uikit._currentDialogContext != null) {
+      Navigator.of(_uikit._currentDialogContext!, rootNavigator: true).pop();
+      _uikit._currentDialogContext = null;
+    }
+  }
+}
+
+class _MyConnectionHandler extends ConnectionHandler {
+  @override
+  void onConnected(String userId) {}
+
+  @override
+  void onDisconnected(String userId) {}
+
+  @override
+  void onReconnectFailed() {}
+
+  @override
+  void onReconnectStarted() {}
+
+  @override
+  void onReconnectSucceeded() {
+    SendbirdUIKit._dismissDelayedConnectingDialog();
+  }
+
+  @override
+  void onConnectionDelayed(int retryAfter) {
+    if (retryAfter > 0) {
+      SendbirdUIKit._showDelayedConnectingDialog(retryAfter);
+    }
   }
 }
