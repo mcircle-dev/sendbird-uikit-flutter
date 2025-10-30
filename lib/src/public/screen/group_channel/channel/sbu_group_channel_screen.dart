@@ -400,102 +400,99 @@ class SBUGroupChannelScreenState extends State<SBUGroupChannelScreen>
               _checkScroll(collection, isBottomOfScreen);
               return false;
             },
-            child: SBUScrollBarComponent(
+            child: ListView.builder(
               controller: scrollController,
-              child: ListView.builder(
-                controller: scrollController,
-                reverse: true,
-                shrinkWrap: false,
-                itemCount: collection.messageList.length,
-                cacheExtent: widget.cacheExtent,
-                itemBuilder: (context, index) {
-                  Widget listItem = AutoScrollTag(
-                    key: ValueKey(index),
-                    controller: scrollController,
-                    index: index,
-                    child: SBUMessageListItemComponent(
-                      messageCollectionNo: collectionNo!,
-                      messageList: collection.messageList,
-                      messageIndex: index,
-                      on1On1ChannelCreated: widget.on1On1ChannelCreated,
-                      onListItemClicked: widget.onListItemClicked,
-                      onParentMessageClicked: (parentMessage) async {
-                        if (isClickedParentMessageAnimating) {
-                          return;
+              reverse: true,
+              shrinkWrap: false,
+              itemCount: collection.messageList.length,
+              cacheExtent: widget.cacheExtent,
+              itemBuilder: (context, index) {
+                Widget listItem = AutoScrollTag(
+                  key: ValueKey(index),
+                  controller: scrollController,
+                  index: index,
+                  child: SBUMessageListItemComponent(
+                    messageCollectionNo: collectionNo!,
+                    messageList: collection.messageList,
+                    messageIndex: index,
+                    on1On1ChannelCreated: widget.on1On1ChannelCreated,
+                    onListItemClicked: widget.onListItemClicked,
+                    onParentMessageClicked: (parentMessage) async {
+                      if (isClickedParentMessageAnimating) {
+                        return;
+                      }
+
+                      int? foundIndex;
+                      for (int index = 0;
+                          index < collection.messageList.length;
+                          index++) {
+                        if (collection.messageList[index].messageId ==
+                            parentMessage.messageId) {
+                          foundIndex = index;
+                          break;
+                        }
+                      }
+
+                      if (foundIndex != null) {
+                        await _scrollToIndex(collection, foundIndex);
+
+                        if (mounted) {
+                          setState(() {
+                            clickedParentMessageIndex = foundIndex;
+                            isClickedParentMessageAnimating = true;
+                          });
                         }
 
-                        int? foundIndex;
-                        for (int index = 0;
-                            index < collection.messageList.length;
-                            index++) {
-                          if (collection.messageList[index].messageId ==
-                              parentMessage.messageId) {
-                            foundIndex = index;
-                            break;
-                          }
+                        for (int i = _animationShakingCount; i > 0; i--) {
+                          await _animationController.forward();
+                          await _animationController.reverse();
                         }
 
-                        if (foundIndex != null) {
-                          await _scrollToIndex(collection, foundIndex);
+                        clickedParentMessageIndex = null;
+                        isClickedParentMessageAnimating = false;
+                      }
+                    },
+                    key: Key(widget.getMessageCacheKey(
+                            collection.messageList[index]) ??
+                        ''),
+                  ),
+                );
 
-                          if (mounted) {
-                            setState(() {
-                              clickedParentMessageIndex = foundIndex;
-                              isClickedParentMessageAnimating = true;
-                            });
-                          }
-
-                          for (int i = _animationShakingCount; i > 0; i--) {
-                            await _animationController.forward();
-                            await _animationController.reverse();
-                          }
-
-                          clickedParentMessageIndex = null;
-                          isClickedParentMessageAnimating = false;
-                        }
-                      },
-                      key: Key(widget.getMessageCacheKey(
-                              collection.messageList[index]) ??
-                          ''),
-                    ),
-                  );
-
-                  Widget? animationListItem;
-                  if (index == clickedParentMessageIndex) {
-                    animationListItem = AnimatedBuilder(
-                      animation: _animationController,
-                      builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(
-                              0, _animationGap * (_animationController.value)),
-                          child: listItem,
-                        );
-                      },
-                    );
-                  }
-
-                  final itemWidget = widget.customListItem != null
-                      ? widget.customListItem!(
-                          context,
-                          theme,
-                          strings,
-                          collection,
-                          index,
-                          collection.messageList[index],
-                        )
-                      : (animationListItem ?? listItem);
-
-                  return LayoutBuilder(
-                    builder: (context, constraints) {
-                      _itemContexts.insert(
-                        index,
-                        ItemContext(index: index, context: context),
+                Widget? animationListItem;
+                if (index == clickedParentMessageIndex) {
+                  animationListItem = AnimatedBuilder(
+                    animation: _animationController,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(
+                            0, _animationGap * (_animationController.value)),
+                        child: listItem,
                       );
-                      return itemWidget;
                     },
                   );
-                },
-              ),
+                }
+
+                final itemWidget = widget.customListItem != null
+                    ? widget.customListItem!(
+                        context,
+                        theme,
+                        strings,
+                        collection,
+                        index,
+                        collection.messageList[index],
+                      )
+                    : (animationListItem ?? listItem);
+
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    _itemContexts.insert(
+                      index,
+                      ItemContext(index: index, context: context),
+                    );
+                    return itemWidget;
+                  },
+                );
+              },
             ),
           )
         : null;
@@ -836,7 +833,23 @@ class SBUGroupChannelScreenState extends State<SBUGroupChannelScreen>
   }
 
   Future<void> _scrollToBottom(MessageCollection collection) async {
-    await _scrollToIndex(collection, 0);
+    try {
+      if (scrollController.hasClients) {
+        await scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+
+      _checkScroll(collection, true);
+    } catch (e) {
+      // fallback: jumpTo 사용
+      if (scrollController.hasClients) {
+        scrollController.jumpTo(0);
+        _checkScroll(collection, true);
+      }
+    }
   }
 
   Future<void> _scrollToIndex(MessageCollection collection, int index) async {
