@@ -789,7 +789,7 @@ class SBUGroupChannelScreenState extends State<SBUGroupChannelScreen>
                 height: 38,
                 margin: EdgeInsets.only(
                     left: 8,
-                    bottom: (MediaQuery.of(context).padding.bottom) + 68,
+                    bottom: (MediaQuery.of(context).padding.bottom) + 78,
                     right: 12),
                 child: Container(
                     padding: const EdgeInsets.all(8),
