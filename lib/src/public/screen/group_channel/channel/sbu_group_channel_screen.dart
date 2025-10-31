@@ -725,7 +725,10 @@ class SBUGroupChannelScreenState extends State<SBUGroupChannelScreen>
             const Expanded(child: SizedBox(width: double.maxFinite)),
             Container(
               height: 38,
-              margin: const EdgeInsets.only(left: 58, bottom: 68, right: 58),
+              margin: EdgeInsets.only(
+                  left: 58,
+                  bottom: (MediaQuery.of(context).padding.bottom) + 68,
+                  right: 58),
               child: GestureDetector(
                 onTap: () async {
                   if (collection != null) {
@@ -782,52 +785,49 @@ class SBUGroupChannelScreenState extends State<SBUGroupChannelScreen>
           children: [
             const Expanded(child: SizedBox(width: double.maxFinite)),
             Container(
-              width: 38,
-              height: 38,
-              margin: const EdgeInsets.only(left: 8, bottom: 68, right: 12),
-              child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isLightTheme
-                        ? SBUColors.background50
-                        : SBUColors.background400,
-                    borderRadius: const BorderRadius.all(Radius.circular(19)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 3,
-                        offset: const Offset(0, 0),
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.12),
-                        blurRadius: 1,
-                        offset: const Offset(0, 2),
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 5,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                      padding: EdgeInsets.only(bottom: 48),
-                      child: SBUIconButtonComponent(
-                        iconButtonSize: 22,
-                        icon: SBUIconComponent(
-                          iconSize: 22,
-                          iconData: SBUIcons.chevronDown,
-                          iconColor: isLightTheme
-                              ? SBUColors.primaryMain
-                              : SBUColors.primaryLight,
+                width: 38,
+                height: 38,
+                margin: const EdgeInsets.only(left: 8, bottom: 68, right: 12),
+                child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isLightTheme
+                          ? SBUColors.background50
+                          : SBUColors.background400,
+                      borderRadius: const BorderRadius.all(Radius.circular(19)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 3,
+                          offset: const Offset(0, 0),
                         ),
-                        onButtonClicked: () async {
-                          if (collection != null) {
-                            await _scrollToBottom(collection);
-                          }
-                        },
-                      ))),
-            ),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 1,
+                          offset: const Offset(0, 2),
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 5,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: SBUIconButtonComponent(
+                      iconButtonSize: 22,
+                      icon: SBUIconComponent(
+                        iconSize: 22,
+                        iconData: SBUIcons.chevronDown,
+                        iconColor: isLightTheme
+                            ? SBUColors.primaryMain
+                            : SBUColors.primaryLight,
+                      ),
+                      onButtonClicked: () async {
+                        if (collection != null) {
+                          await _scrollToBottom(collection);
+                        }
+                      },
+                    ))),
           ],
         ),
     ]);
