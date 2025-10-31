@@ -786,46 +786,47 @@ class SBUGroupChannelScreenState extends State<SBUGroupChannelScreen>
               height: 38,
               margin: const EdgeInsets.only(left: 8, bottom: 68, right: 12),
               child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isLightTheme
-                      ? SBUColors.background50
-                      : SBUColors.background400,
-                  borderRadius: const BorderRadius.all(Radius.circular(19)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 3,
-                      offset: const Offset(0, 0),
-                    ),
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.12),
-                      blurRadius: 1,
-                      offset: const Offset(0, 2),
-                    ),
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 5,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: SBUIconButtonComponent(
-                  iconButtonSize: 22,
-                  icon: SBUIconComponent(
-                    iconSize: 22,
-                    iconData: SBUIcons.chevronDown,
-                    iconColor: isLightTheme
-                        ? SBUColors.primaryMain
-                        : SBUColors.primaryLight,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isLightTheme
+                        ? SBUColors.background50
+                        : SBUColors.background400,
+                    borderRadius: const BorderRadius.all(Radius.circular(19)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 3,
+                        offset: const Offset(0, 0),
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 1,
+                        offset: const Offset(0, 2),
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 5,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
                   ),
-                  onButtonClicked: () async {
-                    if (collection != null) {
-                      await _scrollToBottom(collection);
-                    }
-                  },
-                ),
-              ),
+                  child: Padding(
+                      padding: EdgeInsets.only(bottom: 48),
+                      child: SBUIconButtonComponent(
+                        iconButtonSize: 22,
+                        icon: SBUIconComponent(
+                          iconSize: 22,
+                          iconData: SBUIcons.chevronDown,
+                          iconColor: isLightTheme
+                              ? SBUColors.primaryMain
+                              : SBUColors.primaryLight,
+                        ),
+                        onButtonClicked: () async {
+                          if (collection != null) {
+                            await _scrollToBottom(collection);
+                          }
+                        },
+                      ))),
             ),
           ],
         ),
