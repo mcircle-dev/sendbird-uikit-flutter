@@ -47,7 +47,7 @@ class SBUPlaceholderComponent extends SBUStatelessComponent {
                             ? SBUColors.primaryMain
                             : SBUColors.primaryLight,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(height: 12),
                       SBUTextComponent(
                         text: retryText!,
                         textType: SBUTextType.body3,
@@ -65,11 +65,7 @@ class SBUPlaceholderComponent extends SBUStatelessComponent {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset(
-            'assets/images/img_no_data.png',
-            width: 134,
-            height: 134,
-          ),
+          Image.asset('assets/images/img_no_data.png', width: 120, height: 120),
           const SizedBox(height: 12),
           Text(
             '조회 된 메시지가 없어요',
