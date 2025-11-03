@@ -65,18 +65,23 @@ class SBUPlaceholderComponent extends SBUStatelessComponent {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SBUIconComponent(
-            iconSize: 64,
-            iconData: iconData,
-            iconColor: isLightTheme
-                ? SBUColors.lightThemeTextLowEmphasis
-                : SBUColors.darkThemeTextLowEmphasis,
+          Image.asset(
+            'assets/images/img_no_data.png',
+            width: 134,
+            height: 134,
           ),
-          const SizedBox(height: 16),
-          SBUTextComponent(
-            text: text,
-            textType: SBUTextType.body3,
-            textColorType: SBUTextColorType.text03,
+          const SizedBox(height: 12),
+          Text(
+            '조회 된 메시지가 없어요',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: const Color(0xFF8F96A1),
+              fontSize: 16,
+              fontFamily: 'Pretendard',
+              fontWeight: FontWeight.w600,
+              height: 1.50,
+              letterSpacing: -0.32,
+            ),
           ),
           retryWidget ?? Container(),
         ],
