@@ -65,7 +65,8 @@ class SBUPlaceholderComponent extends SBUStatelessComponent {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset('assets/images/img_no_data.png', width: 120, height: 120),
+          Image.asset('assets/images/image_no_data.png',
+              width: 120, height: 120),
           const SizedBox(height: 12),
           Text(
             '조회 된 메시지가 없어요',
