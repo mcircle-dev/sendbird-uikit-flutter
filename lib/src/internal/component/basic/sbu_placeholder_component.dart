@@ -31,8 +31,7 @@ class SBUPlaceholderComponent extends SBUStatelessComponent {
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
-              'packages/sendbird_uikit/assets/images/image_no_data.png',
-              package: 'sendbird_uikit',
+              'lib/assets/images/image_no_data.png',
               width: 120,
               height: 120,
             ),
