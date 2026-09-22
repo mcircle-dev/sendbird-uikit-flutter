@@ -13,7 +13,6 @@ import 'package:sendbird_uikit/src/internal/component/base/sbu_base_component.da
 import 'package:sendbird_uikit/src/internal/component/basic/sbu_icon_button_component.dart';
 import 'package:sendbird_uikit/src/internal/component/basic/sbu_icon_component.dart';
 import 'package:sendbird_uikit/src/internal/component/basic/sbu_placeholder_component.dart';
-import 'package:sendbird_uikit/src/internal/component/basic/sbu_scroll_bar_component.dart';
 import 'package:sendbird_uikit/src/internal/component/basic/sbu_text_component.dart';
 import 'package:sendbird_uikit/src/internal/component/module/sbu_header_component.dart';
 import 'package:sendbird_uikit/src/internal/component/module/sbu_message_input_component.dart';
