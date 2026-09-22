@@ -24,6 +24,7 @@ class SBUMessageCollectionProvider with ChangeNotifier {
   final Map<String, bool> _freezeMyLastReadMap = {};
   final Map<String, bool> _enabledNewLineMap = {};
   final Map<String, int> _newMessageCountMap = {};
+  final Set<String> _restartingChannelUrls = {};
 
   SBUMessageCollectionProvider._();
 
@@ -38,6 +39,17 @@ class SBUMessageCollectionProvider with ChangeNotifier {
   }) {
     final collectionNo = currentCollectionNo++;
 
+    _collectionMap[collectionNo] = _createCollection(
+      channel: channel,
+      params: params,
+    );
+    return collectionNo;
+  }
+
+  MessageCollection _createCollection({
+    required GroupChannel channel,
+    MessageListParams? params,
+  }) {
     ReplyType? replyType;
     if (params != null && params.replyType != null) {
       replyType = params.replyType;
@@ -45,15 +57,16 @@ class SBUMessageCollectionProvider with ChangeNotifier {
       replyType = ReplyType.onlyReplyToChannel;
     }
 
+    final handler = _MyMessageCollectionHandler(this, channel.channelUrl);
     final collection = MessageCollection(
       channel: channel,
       params: (params ?? MessageListParams())
         ..reverse = true // Supported reverse value is only true.
         ..replyType = replyType,
-      handler: _MyMessageCollectionHandler(this, channel.channelUrl),
+      handler: handler,
     );
-    _collectionMap[collectionNo] = collection;
-    return collectionNo;
+    handler._collection = collection;
+    return collection;
   }
 
   void remove(int collectionNo) {
@@ -76,13 +89,38 @@ class SBUMessageCollectionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void _restart(String channelUrl) {
-    for (final collectionNo in _getCollectionNoList(channelUrl)) {
-      final collection = _collectionMap[collectionNo];
-      if (collection != null) {
+  Future<void> _restart(String channelUrl) async {
+    if (!_restartingChannelUrls.add(channelUrl)) return;
+
+    try {
+      for (final collectionNo in _getCollectionNoList(channelUrl)) {
+        final collection = _collectionMap[collectionNo];
+        if (collection == null) continue;
+
+        final channel = collection.channel;
+        final params = collection.params;
         remove(collectionNo);
-        add(channel: collection.channel, params: collection.params);
+
+        // 화면이 보유한 컬렉션 번호를 유지함.
+        final replacement = _createCollection(channel: channel, params: params);
+        _collectionMap[collectionNo] = replacement;
+
+        try {
+          await replacement.initialize();
+        } catch (error, stack) {
+          FlutterError.reportError(FlutterErrorDetails(
+            exception: error,
+            stack: stack,
+            context: ErrorDescription('while restarting a message collection'),
+          ));
+        }
+
+        if (identical(_collectionMap[collectionNo], replacement)) {
+          _refresh(channelUrl);
+        }
       }
+    } finally {
+      _restartingChannelUrls.remove(channelUrl);
     }
   }
 
@@ -530,6 +568,7 @@ class SBUMessageCollectionProvider with ChangeNotifier {
 class _MyMessageCollectionHandler extends MessageCollectionHandler {
   final SBUMessageCollectionProvider _provider;
   final String _channelUrl;
+  late final MessageCollection _collection;
 
   _MyMessageCollectionHandler(this._provider, this._channelUrl);
 
@@ -578,6 +617,7 @@ class _MyMessageCollectionHandler extends MessageCollectionHandler {
 
   @override
   void onHugeGapDetected() {
-    _provider._restart(_channelUrl);
+    if (_collection.isDisposed) return;
+    unawaited(_provider._restart(_channelUrl));
   }
 }
